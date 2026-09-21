@@ -21,7 +21,12 @@
    "bench/humaneval/sandbox.py": "f149c8063165991f3ffdb5b675affa7814ad15f9f35826553223b9f27ffe263a",
    "bench/humaneval/report.py": "d788e2383b3bbb0809564259a8148f99a9ef1c78a95d02631140f67f23c1639a",
    "bench/results/humaneval/site_examples.json": "aa08dc1dee7938250e9290cce9163172102c006c10ac1020bbe8b6ea6dbdf170",
-   "engine/results/scheduler_trace.json": "f5b253d7b94409523dd5b1c0e9762448c238f1f14d90a3858f91f004f6758dbd"
+   "engine/results/scheduler_trace.json": "f5b253d7b94409523dd5b1c0e9762448c238f1f14d90a3858f91f004f6758dbd",
+   "engine/requirements-serve.txt": "293df07f093e690582a5dc15cd793cec2a057ad6cd4bed35d25835a8cdcc0446",
+   "bench/pyproject.toml": "6963f8726ae49a20a5f26ec0b7e62b8d7eeddaa5a02c0274d59c58b05a106483",
+   "bench/humaneval/Dockerfile": "d79ea0ea51ed39ee83c7401b146e1670bc68fdab3056f4b4a6648eb60883679f",
+   "web/package.json": "c9186aa6a6bcdeab176b338e34fc1bcb565a491b2bfab3d900a6c4c4bda30ee7",
+   "web/site.config.json": "74755735cd81993cbf458913d26c7fe97ff5752f87a16a2eb4133413b855a098"
   }
  },
  "task": {
@@ -4211,6 +4216,32 @@
   "opusMissedSelfSolvedAtLeastOnce": 5,
   "opusMissedWithTruncatedReply": 4
  },
+ "stack": {
+  "engine": {
+   "python": "3.12.3",
+   "torch": "2.14.0+cpu",
+   "packages": [
+    "torch",
+    "transformers",
+    "fastapi",
+    "uvicorn",
+    "prometheus-client"
+   ]
+  },
+  "harness": {
+   "litellm": "1.100.1",
+   "anthropic": "1.7.0",
+   "pytest": "8.3.5",
+   "sandboxBase": "python:3.12-slim"
+  },
+  "web": {
+   "react": "19.3.0",
+   "motion": "13.4.0",
+   "vite": "8.3.0",
+   "typescript": "7.0.2"
+  }
+ },
+ "contact": [],
  "costModel": {
   "selfHostedHoursFor1640": 2.597722222222222,
   "samplesCompared": 1640,
@@ -4494,7 +4525,8 @@
  },
  "bootstrap": {
   "draws": 10000,
-  "seed": 0
+  "seed": 0,
+  "confidence": 0.95
  },
  "caveats": [
   "Sampling differs by design: the self-hosted arm samples at T=0.8, top_p=0.95 (seeded); the hosted arms use the API's default sampling because Opus 5 / Sonnet 5 reject temperature/top_p. Hosted runs are not seed-reproducible; scoring is reproducible from the saved completions.",

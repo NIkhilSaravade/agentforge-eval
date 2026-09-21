@@ -1,5 +1,5 @@
 import { Reveal } from "../components/Chrome";
-import { arm, data, need, SERIES, type ArmId } from "../lib/data";
+import { arm, CONF, data, need, SERIES, type ArmId } from "../lib/data";
 import { ci, gap, int, pct, usd } from "../lib/fmt";
 
 function Score({ id, name }: { id: ArmId; name: string }) {
@@ -9,7 +9,7 @@ function Score({ id, name }: { id: ArmId; name: string }) {
       <div className="label">{name}</div>
       <div className="big num">{pct(a.pass1.value)}</div>
       <div className="mono small">
-        pass@1 &middot; 95% interval {ci(a.pass1)}
+        pass@1 &middot; {CONF} interval {ci(a.pass1)}
         <br />
         {int(a.nSamples)} samples on {int(a.pass1.problems)} problems
       </div>
@@ -57,7 +57,7 @@ export function Opening() {
         <div className="prose">
           <p>
             The self-hosted model is <strong>{gap(haiku.pass1.value, self.pass1.value)} points behind</strong> Haiku 4.5 and{" "}
-            <strong>{gap(opus.pass1.value, self.pass1.value)} points behind</strong> Opus 5 at pass@1, and its 95% interval (
+            <strong>{gap(opus.pass1.value, self.pass1.value)} points behind</strong> Opus 5 at pass@1, and its {CONF} interval (
             {ci(self.pass1)}) does not overlap Haiku&rsquo;s ({ci(need(haiku.pass1, "haiku pass@1"))}). On cost it comes out cheaper than
             Haiku 4.5 only if the machine costs less than <strong>{usd(be)} an hour</strong>, before counting the quality gap.
           </p>

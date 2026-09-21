@@ -1,4 +1,5 @@
 import { Rail } from "./components/Chrome";
+import { Close } from "./sections/Close";
 import { Engine } from "./sections/Engine";
 import { Harness } from "./sections/Harness";
 import { Opening } from "./sections/Opening";
@@ -16,6 +17,7 @@ export default function App() {
           <Pivot />
           <Harness />
           <Results />
+          <Close />
         </div>
       </main>
     </div>

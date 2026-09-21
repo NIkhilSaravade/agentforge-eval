@@ -3,7 +3,7 @@
 // data.sandbox / data.bootstrap / data.arms (parsed from the code and result files). Scroll drives the stage; the buttons are alternatives.
 import { motion, useMotionValueEvent, useReducedMotion, useScroll } from "motion/react";
 import { useRef, useState, type ReactNode } from "react";
-import { arm, data } from "../lib/data";
+import { arm, CONF, data } from "../lib/data";
 import { ci, dec, int, pct, seconds } from "../lib/fmt";
 
 type Which = "passing" | "failing";
@@ -90,7 +90,7 @@ export function RequestTrace() {
       real: `outcome: ${sample.outcome}\n${sample.detail ? `\n${firstLines(sample.detail, 6)}` : "\nno failing assertions"}`,
     },
     6: {
-      says: <>Per problem, the unbiased pass@k estimator over that problem&rsquo;s samples. Across problems, a mean; the 95% interval resamples the problems {int(data.bootstrap.draws)} times with a fixed seed.</>,
+      says: <>Per problem, the unbiased pass@k estimator over that problem&rsquo;s samples. Across problems, a mean; the {CONF} interval resamples the problems {int(data.bootstrap.draws)} times with a fixed seed.</>,
       real:
         `${ex.problem.taskId}: ${int(ex.problem.passes)} of ${int(ex.problem.n)} samples passed\n` +
         `  pass@1 = ${dec(ex.passAt1, 2)}   pass@3 = ${dec(ex.passAt3, 4)}\n\n` +

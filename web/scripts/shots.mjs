@@ -103,6 +103,33 @@ try {
         }
       }
     }
+    if (name === "mobile") {
+      // horizontal overflow is a layout bug on any viewport; report it, then capture each section's opening screen
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+      if (overflow > 1) {
+        const offenders = await page.evaluate(() =>
+          [...document.querySelectorAll("body *")]
+            .map((el) => ({ el, r: el.getBoundingClientRect() }))
+            .filter(({ el, r }) => r.right > window.innerWidth + 1 && r.width > 0 && !el.closest(".rail") && !el.closest(".table-wrap"))
+            .sort((a, b) => b.r.right - a.r.right)
+            .slice(0, 8)
+            .map(({ el, r }) => `${el.tagName.toLowerCase()}.${String(el.className).slice(0, 30)} right=${Math.round(r.right)} w=${Math.round(r.width)}`),
+        );
+        errors.push(`mobile: page is ${overflow}px wider than the viewport; widest: ${offenders.join(" | ")}`);
+      }
+      for (const id of ["engine", "pivot", "harness", "results", "close"]) {
+        const y = await page.evaluate((i) => {
+          const el = document.getElementById(i);
+          return el ? el.getBoundingClientRect().top + window.scrollY : null;
+        }, id);
+        if (y === null) continue;
+        for (const [k, off] of [["a", -10], ["b", 640], ["c", 1500]]) {
+          await page.evaluate((v) => window.scrollTo(0, v), y + off);
+          await wait(500);
+          await page.screenshot({ path: `${OUT}/mobile-${id}-${k}.png` });
+        }
+      }
+    }
     await page.close();
   }
   console.log(errors.length ? `PAGE ERRORS:\n${errors.join("\n")}` : "no page errors");

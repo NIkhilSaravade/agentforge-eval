@@ -28,7 +28,7 @@ export function Engine() {
             cost of a step almost independent of how many sequences share it.
           </p>
           <p>
-            Measured on this CPU with the 1.5-billion-parameter model: one decode step for a single sequence took {seconds(b1.decode_step_seconds, 4)};
+            Measured on this CPU with the {data.facts.tsBench.servedParamsB}-billion-parameter model: one decode step for a single sequence took {seconds(b1.decode_step_seconds, 4)};
             for {int(b32.batch)} sequences at once it took {seconds(b32.decode_step_seconds, 4)}. That is {times(e.batchingGain.stepTimeRatio)} the time
             for {times(e.batchingGain.tokensPerSecondRatio)} the tokens per second.
           </p>
@@ -54,7 +54,7 @@ export function Engine() {
           <br />
           <br />
           <span className="label">Noise</span>
-          One run per batch size. An earlier run of the same script put batch 8 well above where this one did.
+          One run per batch size, and the numbers wobble between runs: an earlier run of the same script measured a mid-sized batch noticeably faster than this one did.
         </div>
       </div>
 

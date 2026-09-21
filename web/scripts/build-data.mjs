@@ -250,6 +250,7 @@ must(sandbox.readOnlyRootfs && sandbox.noNewPrivileges, "sandbox source no longe
 const bootstrap = {
   draws: Number(match1(repSrc, /def bootstrap_ci\(values: list\[float\], b: int = ([\d_]+)/, "bootstrap draws")[1].replace(/_/g, "")),
   seed: Number(match1(repSrc, /def bootstrap_ci\(values: list\[float\], b: int = [\d_]+, seed: int = (\d+)/, "bootstrap seed")[1]),
+  confidence: 1 - Number(match1(repSrc, /def bootstrap_ci\([^)]*alpha: float = ([\d.]+)/, "bootstrap alpha")[1]),
 };
 
 // ---------------------------------------------------------------- one real request, for the eval-architecture diagram
@@ -270,12 +271,35 @@ const selfEngine = { ttftP50: eng.ttft_p50_s, tpotP50: eng.tpot_p50_s, e2eP50: e
 // ---------------------------------------------------------------- optional: recorded scheduler trace (W2)
 const trace = json("engine/results/scheduler_trace.json", true);
 
+// ---------------------------------------------------------------- the technology stack, read from the files that declare it
+const engineReqs = read("engine/requirements-serve.txt").split("\n").map((l) => l.trim()).filter((l) => l && !l.startsWith("-"));
+must(["torch", "fastapi", "uvicorn"].every((n) => engineReqs.includes(n)), "engine/requirements-serve.txt no longer lists torch, fastapi and uvicorn");
+const benchToml = read("bench/pyproject.toml");
+const dep = (name) => match1(benchToml, new RegExp(`"${name}>=([\\d.]+)"`), `${name} in bench/pyproject.toml`)[1];
+const dockerfile = read("bench/humaneval/Dockerfile");
+const webPkg = json("web/package.json");
+const cleanV = (v) => v.replace(/^[^\d]*/, "");
+const engineVer = json(`${R}/qwen2.5-coder-1.5b/run.json`).engine_version;
+const stack = {
+  engine: { python: engineVer.python, torch: engineVer.torch, packages: engineReqs },
+  harness: {
+    litellm: dep("litellm"), anthropic: dep("anthropic"),
+    pytest: match1(dockerfile, /pytest==([\d.]+)/, "pinned pytest in the sandbox Dockerfile")[1],
+    sandboxBase: match1(dockerfile, /FROM (\S+)/, "sandbox base image")[1],
+  },
+  web: Object.fromEntries(["react", "motion", "vite", "typescript"].map((n) => [n, cleanV((webPkg.dependencies?.[n] ?? webPkg.devDependencies?.[n]) ?? "")])),
+};
+must(Object.values(stack.web).every(Boolean), "a web dependency version could not be read from web/package.json");
+const siteConfig = json("web/site.config.json");
+const contact = siteConfig.contact ?? [];
+must(Array.isArray(contact), "web/site.config.json: contact must be a list");
+
 const repoUrl = execFileSync("git", ["-C", ROOT, "remote", "get-url", "origin"], { encoding: "utf8" }).trim().replace(/\.git$/, "");
 
 const data = {
   meta: { generator: "web/scripts/build-data.mjs", repoUrl, dataset: cmp.arms.self_hosted_sampled.dataset_sha256, promptTemplateSha256: cmp.arms.self_hosted_sampled.prompt_template_sha256, sources },
   task: { problems: 164, harnessGate: { goldPassed: gate.gold_passed, emptyPassed: gate.empty_passed, problems: gate.n_problems, seconds: gate.seconds } },
-  arms, strips, overlap, costModel, spend, engine, engineRequestStats: selfEngine, facts, example, sandbox, bootstrap,
+  arms, strips, overlap, stack, contact, costModel, spend, engine, engineRequestStats: selfEngine, facts, example, sandbox, bootstrap,
   caveats: cmp.caveats,
   trace,
 };

@@ -1,0 +1,4 @@
+{
+  "_comment": "Optional contact links shown in the site's closing section, e.g. { \"label\": \"Email\", \"url\": \"mailto:you@example.com\" }. Empty on purpose: nothing personal is published unless it is added here.",
+  "contact": []
+}

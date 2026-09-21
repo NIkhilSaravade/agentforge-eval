@@ -2,7 +2,7 @@
 // solid hairline grid, direct labels only on the values that matter, a legend whenever there is more than one series,
 // a table view of the same numbers next to it, and series color never used for text.
 import { useState } from "react";
-import { arm, data, need, SERIES, type ArmId } from "../lib/data";
+import { arm, CONF, data, need, SERIES, type ArmId } from "../lib/data";
 import { dec, int, pct, usd } from "../lib/fmt";
 import { HEX, RAMP, rampStep } from "../lib/palette";
 
@@ -37,10 +37,10 @@ export function IntervalChart() {
     <figure className="figure">
       <Legend />
       <div className="well">
-        <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label="pass@1 and pass@3 with 95% intervals for each arm. The same numbers are in the table above.">
+        <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label={`pass@1 and pass@3 with ${CONF} intervals for each arm. The same numbers are in the table above.`}>
           {([0, 1] as const).map((panel) => (
             <g key={panel}>
-              <text x={px(panel, 0)} y={18} className="lane-h">{panel === 0 ? "PASS@1" : "PASS@3"} &middot; 95% INTERVAL</text>
+              <text x={px(panel, 0)} y={18} className="lane-h">{panel === 0 ? "PASS@1" : "PASS@3"} &middot; {CONF} INTERVAL</text>
               {ticks.map((t) => (
                 <g key={t}>
                   <line x1={px(panel, t)} y1={TOP - 10} x2={px(panel, t)} y2={TOP + ORDER.length * ROW - 6} stroke="var(--rule)" strokeWidth={1} />
@@ -62,7 +62,7 @@ export function IntervalChart() {
                   const stroke = SERIES[id];
                   return (
                     <g key={panel}>
-                      <title>{`${a.short}, pass@${panel === 0 ? 1 : 3}: ${pct(v.value)} (95% interval ${pct(v.lo)} to ${pct(v.hi)})`}</title>
+                      <title>{`${a.short}, pass@${panel === 0 ? 1 : 3}: ${pct(v.value)} (${CONF} interval ${pct(v.lo)} to ${pct(v.hi)})`}</title>
                       <line x1={px(panel, v.lo)} y1={y} x2={px(panel, v.hi)} y2={y} stroke={stroke} strokeWidth={2} />
                       <line x1={px(panel, v.lo)} y1={y - 5} x2={px(panel, v.lo)} y2={y + 5} stroke={stroke} strokeWidth={2} />
                       <line x1={px(panel, v.hi)} y1={y - 5} x2={px(panel, v.hi)} y2={y + 5} stroke={stroke} strokeWidth={2} />
@@ -77,7 +77,7 @@ export function IntervalChart() {
         </svg>
       </div>
       <figcaption>
-        <b>Full axes, 0 to 100%.</b> A dot is the estimate, the bar is the 95% interval over problems (the sampling unit for &ldquo;a different set of problems&rdquo;); it does not
+        <b>Full axes, {pct(0, 0)} to {pct(1, 0)}.</b> A dot is the estimate, the bar is the {CONF} interval over problems (the sampling unit for &ldquo;a different set of problems&rdquo;); it does not
         include seed-to-seed variance. Opus 5 has {int(arm("opus").samplesPerProblem[0] ?? 0)} samples per problem, and its failures are all-or-nothing per problem, so its pass@1 and pass@3
         are identical. The hollow marker is the same self-hosted model under greedy decoding.
       </figcaption>

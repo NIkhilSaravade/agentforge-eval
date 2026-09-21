@@ -145,8 +145,8 @@ td .ci { display: block; font-size: 0.7rem; color: var(--ink-3); margin-top: 0.1
 
 /* ---------- responsive: desktop-first; the diagrams keep their fidelity, the layout gives way around them ---------- */
 @media (max-width: 1100px) {
-  .page { grid-template-columns: 1fr; }
-  .rail { position: static; height: auto; flex-direction: row; align-items: center; border-right: 0; border-bottom: 1px solid var(--rule); padding: 0.9rem 1.2rem; gap: 1.2rem; overflow-x: auto; }
+  .page { grid-template-columns: minmax(0, 1fr); }
+  .rail { min-width: 0; position: static; height: auto; flex-direction: row; align-items: center; border-right: 0; border-bottom: 1px solid var(--rule); padding: 0.9rem 1.2rem; gap: 1.2rem; overflow-x: auto; }
   .rail nav { margin: 0; }
   .rail ol { display: flex; gap: 1.1rem; }
   .rail li a { border: 0 !important; padding: 0; grid-template-columns: auto auto; gap: 0.4rem; white-space: nowrap; }
@@ -254,8 +254,23 @@ h3.tri { font-size: 1.7rem; letter-spacing: -0.012em; margin-bottom: 0.9rem; }
 ol.caveats { margin: 1rem 0 0; padding-left: 1.5rem; }
 ol.caveats li { margin-bottom: 1rem; padding-left: 0.3rem; }
 ol.caveats li::marker { font-family: var(--mono); font-weight: 600; color: var(--self); font-size: 0.85em; }
-@media (max-width: 980px) { .notes-grid { grid-template-columns: 1fr; gap: 2.4rem 0; } }
+@media (max-width: 980px) { .notes-grid { grid-template-columns: minmax(0, 1fr); gap: 2.4rem 0; } }
 
 table.compact td, table.compact th { padding: 0.55rem 0.45rem; }
 table.compact td { white-space: nowrap; }
 table.compact td.name { font-size: 1rem; }
+
+/* ---------- close ---------- */
+.deflist { margin: 1.8rem 0 1.6rem; }
+.deflist > div { display: grid; grid-template-columns: 7.5rem minmax(0, 1fr); gap: 0 1rem; border-top: 1px solid var(--rule); padding: 0.85rem 0 0.4rem; }
+.deflist dt { padding-top: 0.25rem; }
+.deflist dd { margin: 0 0 0.6rem; font-size: 1.06rem; line-height: 1.5; }
+@media (max-width: 640px) { .deflist > div { grid-template-columns: 1fr; } }
+
+/* ---------- narrow screens: keep the diagrams readable (they scroll inside their frame; the page never scrolls sideways) ---------- */
+@media (max-width: 760px) {
+  .figure .well { overflow-x: auto; }
+  .figure .well svg { min-width: 700px; }
+  .sticky-fig svg { max-height: none; }
+  .stage { grid-template-columns: minmax(0, 1fr); }
+}

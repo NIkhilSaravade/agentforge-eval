@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Reveal, SectionHead } from "../components/Chrome";
 import { BreakEven, IntervalChart, Strips } from "../components/ResultsCharts";
-import { arm, data, SERIES, type ArmId } from "../lib/data";
+import { arm, CONF, data, SERIES, type ArmId } from "../lib/data";
 import { ci, clock, gap, int, pct, usd } from "../lib/fmt";
 import { HEX } from "../lib/palette";
 
@@ -60,7 +60,7 @@ function ResultsTable() {
     <div className="figure table-wrap" style={{ marginTop: "1.4rem" }}>
       <table>
         <caption className="label" style={{ textAlign: "left", paddingBottom: "0.5rem" }}>
-          Same {int(data.task.problems)} problems, same fixed prompt, same sandbox and scorer. Intervals are 95%, resampling problems.
+          Same {int(data.task.problems)} problems, same fixed prompt, same sandbox and scorer. Intervals are {CONF}, resampling problems.
         </caption>
         <thead>
           <tr>

@@ -25,4 +25,7 @@ export const need = <T,>(v: T | null | undefined, what: string): T => {
   return v;
 };
 
+/** The confidence level of every interval on the page, read from the code that computes them (alpha in report.py). */
+export const CONF = `${Math.round(raw.bootstrap.confidence * 100)}%`;
+
 export const trace = need(data.trace, "the scheduler trace (run engine/scripts/record_scheduler_trace.py)");

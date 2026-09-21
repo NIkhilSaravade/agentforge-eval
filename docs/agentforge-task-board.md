@@ -666,7 +666,7 @@ Rules inherited from the project: every number traces to a file; the negative re
 | W2 | Real scheduler trace recorded from the actual engine + the animated engine diagram | DONE (2026-09-22) |
 | W3 | Opening, pivot story, eval-architecture trace (a real request's path) | DONE (2026-09-22) |
 | W4 | Results: table, CI chart, per-problem strips, break-even chart, caveats at equal weight | DONE (2026-09-22) |
-| W5 | Close, polish, "AI tell" lint, number-provenance lint, screenshots reviewed, mobile check | NOT STARTED |
+| W5 | Close, polish, "AI tell" lint, number-provenance lint, screenshots reviewed, mobile check | DONE (see W5 below) |
 
 ## Decisions made up front (recorded so they are not silent)
 - **Location:** `web/` at the repo root (standalone project inside the monorepo, so the data script can read the result files). The site name/path is easy to move.
@@ -795,3 +795,23 @@ $ vite build   -> built
 $ shots.mjs    -> no page errors
 ```
 Screenshots reviewed: the table, interval chart, all four strips, break-even chart at its default, caveats and truncation table.
+
+## W5: close, polish, lints, mobile — DONE
+
+**Built:** `web/src/sections/Close.tsx` (stack deflist, repo link, corrections, provenance; contact shown only if `web/site.config.json` supplies it — currently empty on purpose); `web/scripts/lint-tells.mjs` (gradient, blur/glass, shadow, sparkle, Inter, endless/bounce animation, canvas/WebGL, particles, radius >2px, emoji, purple hues, banned deps); `web/scripts/lint-numbers.mjs` (TypeScript-AST scan: no digit typed into JSX text, static child strings or aria-label/title/alt); `web/tests/lint.test.ts` (18 tests proving each lint catches what it claims); `web/scripts/shots.mjs` (desktop 1440 and mobile 390 captures, horizontal-overflow detector).
+
+**Problems hit and fixes:**
+- TypeScript 7 has no JS API, so the number lint uses a `ts5` alias (typescript@^5) used only by the lint.
+- lint-numbers found 15 real violations (typed "95%", "1.5-billion", an ad-hoc batch sentence). Fixed: `CONF` is now read from report.py alpha, the others come from data.json.
+- Mobile: 61px horizontal overflow from grid min-content tracks; fixed with `minmax(0,1fr)`. Diagrams unreadable when scaled to 390px; now `min-width:700px` inside a horizontally scrolling frame.
+- Factual overstatements caught in review and corrected (see W4 notes for the wording list).
+
+**Done-when check, actual output:**
+- `build-data.mjs`: data.json regenerated from 22 source files.
+- vitest: 2 files, 34 tests passed.
+- lint-tells: clean (18 files). lint-numbers: clean (13 components).
+- `tsc -b`: clean. `vite build`: built.
+- `shots.mjs`: "no page errors" (no console errors, no page overflow at 390px).
+- Manual AI-tell review (not lintable): no centered hero with two pill buttons; no repeated icon-heading-paragraph grid (the one 3-score strip in the opening is used once, no icons); negative result sits in the opening and at equal weight in Results.
+
+**Open items for the owner:** contact details (add to `web/site.config.json`); confirm repo is public / accepts issues; keep or remove the "Built with Claude Code" line; deployment not done (out of scope); `workspaces=true` in ~/.npmrc breaks per-project npm (we set `npm_config_workspaces=false`).
