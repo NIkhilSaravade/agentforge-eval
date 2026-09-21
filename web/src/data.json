@@ -15,6 +15,7 @@
    "bench/results/humaneval/spend_ledger.jsonl": "0a84b916a9ba3fc959f910c7a9e36df2e87d7eb929429b1f6233e56c070af657",
    "engine/results/decode_sweep_qwen2.5-coder-1.5b.json": "b8ce5d9357e3da6a92478841efdb71315c678eb51b41faa303a1928aeaff7d22",
    "engine/results/thread_penalty_qwen2.5-coder-1.5b.json": "be86c34ebc80d42076b5652953ae99e468e3e617db730d155b1cdb3168711237",
+   "bench/results/humaneval/qwen2.5-coder-1.5b/run.json": "1795b526af5b1bf40205f6162695c0466befe8f5297a160a29ea02d167100470",
    "bench/results/humaneval_gate.json": "a2e3857893822c064a292b3e0aa2aaa087238eada5ff8ca551ae18b49bbd8e9d",
    "bench/docs/step7-real-model-run.md": "53744d8d22373a7fdcfb3718a4075488a973c3d001d9372100b0f74cf638c739",
    "docs/agentforge-task-board.md": "667e95927e0a4a6ac6f21503abb30db7c1ad35ba69639e6ac619b8d68246d850",
@@ -4314,6 +4315,17 @@
    "logical_cpus": "28",
    "mem_total": "16225408 kB",
    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39"
+  },
+  "servedConfig": {
+   "model": "qwen2.5-coder-1.5b",
+   "backend": "paged",
+   "batching": "continuous",
+   "maxBatch": 32,
+   "blockSize": 16,
+   "kvBudgetMib": 2048,
+   "maxContext": 4096,
+   "numThreads": 20,
+   "preemption": true
   }
  },
  "engineRequestStats": {

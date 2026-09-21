@@ -155,6 +155,10 @@ const engine = {
     tokensPerSecond: eng.throughput_tok_per_s,
   },
   hardware: cmp.arms.self_hosted_sampled.self_hosted.hardware,
+  servedConfig: (() => {
+    const c = json(`${R}/qwen2.5-coder-1.5b/run.json`).engine_version.config;
+    return { model: c.model, backend: c.backend, batching: c.batching, maxBatch: c.max_batch, blockSize: c.block_size, kvBudgetMib: c.kv_budget_mib, maxContext: c.max_context, numThreads: c.num_threads, preemption: c.preemption };
+  })(),
 };
 
 // ---------------------------------------------------------------- gate

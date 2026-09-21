@@ -663,7 +663,7 @@ Rules inherited from the project: every number traces to a file; the negative re
 | Phase | What | Status |
 |---|---|---|
 | W1 | Scaffold, data pipeline (`web/scripts/build-data.mjs` -> `web/src/data.json`), data tests | DONE (2026-09-22) |
-| W2 | Real scheduler trace recorded from the actual engine + the animated engine diagram | NOT STARTED |
+| W2 | Real scheduler trace recorded from the actual engine + the animated engine diagram | DONE (2026-09-22) |
 | W3 | Opening, pivot story, eval-architecture trace (a real request's path) | NOT STARTED |
 | W4 | Results: table, CI chart, per-problem strips, break-even chart, caveats at equal weight | NOT STARTED |
 | W5 | Close, polish, "AI tell" lint, number-provenance lint, screenshots reviewed, mobile check | NOT STARTED |
@@ -708,3 +708,32 @@ no evidence about other scaffolds. README corrected; the site uses the doc's wor
 $ node scripts/build-data.mjs   -> wrote src/data.json (14 source files hashed; scheduler trace not present yet)
 $ vitest run                    -> Test Files 1 passed | Tests 14 passed
 ```
+
+## W2 — Real scheduler trace and the animated engine diagram (DONE 2026-09-22)
+
+### Built
+- `engine/scripts/record_scheduler_trace.py` -> `engine/results/scheduler_trace.json`. Wraps the LIVE `Scheduler`/`BlockManager` (allocate, append_slot, free, `_prefill`, `_preempt`, `_emit`) to observe only; no engine code changed. Workload: 8 real GPT-2 requests,
+  block size 4, a 17-block pool (5 MiB), max batch 4. Result: **60 steps, 4 evictions, 156 tokens, pool peaks at 17/17**. The script asserts before writing: at least one preemption happened, no blocks leaked, and every request's output equals a
+  single-request greedy run. The FIRST attempt (7 MiB, 24 blocks) never exhausted the pool and the assertion refused to write a trace, so the workload was tightened (5 MiB, longer outputs). The assertion did its job.
+- Snapshot semantics were verified from the data, not assumed: in all 144 running snapshots `len(block_table) == ceil((seq_len - 1) / block_size)`, so a request's cache holds `seq_len - 1` tokens (the newest sampled token is not cached until the next decode). The diagram fills token cells by that rule.
+- `web/src/components/EngineTrace.tsx`: an SVG driven only by the recorded snapshots and events. Letter chips travel between the waiting queue, the four batch rows and back; each KV block shows its owner and logical index (`C2` = request C's second block) and its
+  token cells fill as tokens are cached; free blocks are hatched; an eviction marks the discarded blocks with fading X's; the step text is generated from that step's own events. Scroll drives it (sticky figure inside a tall section); Prev, Next, Play, "Next eviction" and a range slider are alternatives;
+  the last input wins. Reduced-motion users get instant transitions and a static figure.
+- `web/src/sections/Engine.tsx`, `Opening.tsx`, `components/Chrome.tsx` (sticky section rail, section header, restrained reveal), `lib/{data,fmt,trace}.ts`, `styles.css` (paper/ink tokens, type scale, editorial layout).
+- `web/scripts/shots.mjs`: Playwright screenshots of desktop and mobile, plus the engine figure at scroll positions and at an eviction moment.
+- The section is honest about scope: the diagram uses a deliberately tiny pool to force evictions; the real HumanEval run used a 2,048 MiB pool of 16-token blocks and had 0 evictions at 27.07% mean utilisation, and the page says so. It also reports the real-run decode step (0.96 s) against the uniform
+  benchmark (0.38 s) as an unexplained gap, and the 45% thread-arrangement finding.
+
+### Problems hit
+- Chromium would not start in WSL: `libnspr4`, `libnss3`, `libnssutil3`, `libasound2` were missing and there is no passwordless sudo. Worked around without root: `apt-get download` the three packages, `dpkg -x` them into `~/.local/chromium-libs/root`, and set `LD_LIBRARY_PATH` when running `shots.mjs`. Nothing installed system-wide.
+- Two text collisions found only by LOOKING at screenshots (the "EVICTED n times" tag overlapped the row title, then the block-table line). Fixed by giving the tag its own line. The first score card's label wrapped and misaligned the three big numbers; fixed with a min-height.
+- The dataviz palette validator forbids near-black ink as a series color (fails the chroma floor); ink is used for text and structure only.
+
+### Check (actual output)
+```
+$ tsc -b            -> clean
+$ vitest run        -> 14 passed
+$ vite build        -> built (466 KB JS gzip 133 KB; fonts self-hosted)
+$ shots.mjs         -> no page errors (desktop 1440x900 and mobile 390x844)
+```
+Screenshots reviewed: the opening, the engine figure at 7 scroll positions, a mid-animation eviction (ghost X's on the 3 evicted blocks, chip returning to the queue tagged RECOMPUTE, red step text), and the final state.
