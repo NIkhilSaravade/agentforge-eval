@@ -17,8 +17,9 @@
    "engine/results/thread_penalty_qwen2.5-coder-1.5b.json": "be86c34ebc80d42076b5652953ae99e468e3e617db730d155b1cdb3168711237",
    "bench/results/humaneval_gate.json": "a2e3857893822c064a292b3e0aa2aaa087238eada5ff8ca551ae18b49bbd8e9d",
    "bench/docs/step7-real-model-run.md": "53744d8d22373a7fdcfb3718a4075488a973c3d001d9372100b0f74cf638c739",
-   "docs/agentforge-task-board.md": "f1e20a967afda6d2f5897d57be97569d1324a307077a83252784a85642ba2e9f",
-   "bench/results/humaneval/site_examples.json": "aa08dc1dee7938250e9290cce9163172102c006c10ac1020bbe8b6ea6dbdf170"
+   "docs/agentforge-task-board.md": "667e95927e0a4a6ac6f21503abb30db7c1ad35ba69639e6ac619b8d68246d850",
+   "bench/results/humaneval/site_examples.json": "aa08dc1dee7938250e9290cce9163172102c006c10ac1020bbe8b6ea6dbdf170",
+   "engine/results/scheduler_trace.json": "f5b253d7b94409523dd5b1c0e9762448c238f1f14d90a3858f91f004f6758dbd"
   }
  },
  "task": {
@@ -4448,5 +4449,5907 @@
   "pass@k CIs are problem-level bootstrap (the sampling unit for 'a different set of problems'); they do not include seed-to-seed variance.",
   "The self-hosted machine has no dollar cost here: no hourly rate was supplied. break_even_self_hosting_rate is the rate-free comparison."
  ],
- "trace": null
+ "trace": {
+  "about": "A real trace of engine/engine/scheduler.py + block_manager.py serving GPT-2 (paged KV, continuous batching, preempt-and-recompute). Nothing here is simulated; see engine/scripts/record_scheduler_trace.py.",
+  "config": {
+   "model": "gpt2",
+   "backend": "paged",
+   "batching": "continuous",
+   "max_batch": 4,
+   "block_size": 4,
+   "num_blocks": 17,
+   "kv_budget_mib": 5,
+   "preemption": true,
+   "ignore_eos": true
+  },
+  "requests": [
+   {
+    "id": "A",
+    "prompt_tokens": 10,
+    "new_tokens": 18,
+    "arrives_at_step": 0
+   },
+   {
+    "id": "B",
+    "prompt_tokens": 6,
+    "new_tokens": 24,
+    "arrives_at_step": 0
+   },
+   {
+    "id": "C",
+    "prompt_tokens": 18,
+    "new_tokens": 14,
+    "arrives_at_step": 1
+   },
+   {
+    "id": "D",
+    "prompt_tokens": 8,
+    "new_tokens": 28,
+    "arrives_at_step": 2
+   },
+   {
+    "id": "E",
+    "prompt_tokens": 12,
+    "new_tokens": 20,
+    "arrives_at_step": 4
+   },
+   {
+    "id": "F",
+    "prompt_tokens": 5,
+    "new_tokens": 16,
+    "arrives_at_step": 6
+   },
+   {
+    "id": "G",
+    "prompt_tokens": 14,
+    "new_tokens": 22,
+    "arrives_at_step": 9
+   },
+   {
+    "id": "H",
+    "prompt_tokens": 7,
+    "new_tokens": 14,
+    "arrives_at_step": 12
+   }
+  ],
+  "steps": [
+   {
+    "step": 0,
+    "arrived": [
+     "A",
+     "B"
+    ],
+    "state": {
+     "running": [
+      {
+       "id": "A",
+       "seq_len": 12,
+       "generated": 2,
+       "max_new": 18,
+       "blocks": [
+        0,
+        1,
+        2
+       ],
+       "preempted": 0
+      },
+      {
+       "id": "B",
+       "seq_len": 8,
+       "generated": 2,
+       "max_new": 24,
+       "blocks": [
+        3,
+        4
+       ],
+       "preempted": 0
+      }
+     ],
+     "waiting": [],
+     "free_blocks": [
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16
+     ],
+     "used_blocks": 5,
+     "preemptions_total": 0
+    }
+   },
+   {
+    "step": 1,
+    "arrived": [
+     "C"
+    ],
+    "state": {
+     "running": [
+      {
+       "id": "A",
+       "seq_len": 13,
+       "generated": 3,
+       "max_new": 18,
+       "blocks": [
+        0,
+        1,
+        2
+       ],
+       "preempted": 0
+      },
+      {
+       "id": "B",
+       "seq_len": 9,
+       "generated": 3,
+       "max_new": 24,
+       "blocks": [
+        3,
+        4
+       ],
+       "preempted": 0
+      },
+      {
+       "id": "C",
+       "seq_len": 20,
+       "generated": 2,
+       "max_new": 14,
+       "blocks": [
+        5,
+        6,
+        7,
+        8,
+        9
+       ],
+       "preempted": 0
+      }
+     ],
+     "waiting": [],
+     "free_blocks": [
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16
+     ],
+     "used_blocks": 10,
+     "preemptions_total": 0
+    }
+   },
+   {
+    "step": 2,
+    "arrived": [
+     "D"
+    ],
+    "state": {
+     "running": [
+      {
+       "id": "A",
+       "seq_len": 14,
+       "generated": 4,
+       "max_new": 18,
+       "blocks": [
+        0,
+        1,
+        2,
+        12
+       ],
+       "preempted": 0
+      },
+      {
+       "id": "B",
+       "seq_len": 10,
+       "generated": 4,
+       "max_new": 24,
+       "blocks": [
+        3,
+        4,
+        13
+       ],
+       "preempted": 0
+      },
+      {
+       "id": "C",
+       "seq_len": 21,
+       "generated": 3,
+       "max_new": 14,
+       "blocks": [
+        5,
+        6,
+        7,
+        8,
+        9
+       ],
+       "preempted": 0
+      },
+      {
+       "id": "D",
+       "seq_len": 10,
+       "generated": 2,
+       "max_new": 28,
+       "blocks": [
+        10,
+        11,
+        14
+       ],
+       "preempted": 0
+      }
+     ],
+     "waiting": [],
+     "free_blocks": [
+      15,
+      16
+     ],
+     "used_blocks": 15,
+     "preemptions_total": 0
+    }
+   },
+   {
+    "step": 3,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "A",
+       "seq_len": 15,
+       "generated": 5,
+       "max_new": 18,
+       "blocks": [
+        0,
+        1,
+        2,
+        12
+       ],
+       "preempted": 0
+      },
+      {
+       "id": "B",
+       "seq_len": 11,
+       "generated": 5,
+       "max_new": 24,
+       "blocks": [
+        3,
+        4,
+        13
+       ],
+       "preempted": 0
+      },
+      {
+       "id": "C",
+       "seq_len": 22,
+       "generated": 4,
+       "max_new": 14,
+       "blocks": [
+        5,
+        6,
+        7,
+        8,
+        9,
+        15
+       ],
+       "preempted": 0
+      },
+      {
+       "id": "D",
+       "seq_len": 11,
+       "generated": 3,
+       "max_new": 28,
+       "blocks": [
+        10,
+        11,
+        14
+       ],
+       "preempted": 0
+      }
+     ],
+     "waiting": [],
+     "free_blocks": [
+      16
+     ],
+     "used_blocks": 16,
+     "preemptions_total": 0
+    }
+   },
+   {
+    "step": 4,
+    "arrived": [
+     "E"
+    ],
+    "state": {
+     "running": [
+      {
+       "id": "A",
+       "seq_len": 16,
+       "generated": 6,
+       "max_new": 18,
+       "blocks": [
+        0,
+        1,
+        2,
+        12
+       ],
+       "preempted": 0
+      },
+      {
+       "id": "B",
+       "seq_len": 12,
+       "generated": 6,
+       "max_new": 24,
+       "blocks": [
+        3,
+        4,
+        13
+       ],
+       "preempted": 0
+      },
+      {
+       "id": "C",
+       "seq_len": 23,
+       "generated": 5,
+       "max_new": 14,
+       "blocks": [
+        5,
+        6,
+        7,
+        8,
+        9,
+        15
+       ],
+       "preempted": 0
+      },
+      {
+       "id": "D",
+       "seq_len": 12,
+       "generated": 4,
+       "max_new": 28,
+       "blocks": [
+        10,
+        11,
+        14
+       ],
+       "preempted": 0
+      }
+     ],
+     "waiting": [
+      {
+       "id": "E",
+       "prompt": 12,
+       "generated": 0,
+       "max_new": 20,
+       "preempted": 0
+      }
+     ],
+     "free_blocks": [
+      16
+     ],
+     "used_blocks": 16,
+     "preemptions_total": 0
+    }
+   },
+   {
+    "step": 5,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "A",
+       "seq_len": 17,
+       "generated": 7,
+       "max_new": 18,
+       "blocks": [
+        0,
+        1,
+        2,
+        12
+       ],
+       "preempted": 0
+      },
+      {
+       "id": "B",
+       "seq_len": 13,
+       "generated": 7,
+       "max_new": 24,
+       "blocks": [
+        3,
+        4,
+        13
+       ],
+       "preempted": 0
+      },
+      {
+       "id": "C",
+       "seq_len": 24,
+       "generated": 6,
+       "max_new": 14,
+       "blocks": [
+        5,
+        6,
+        7,
+        8,
+        9,
+        15
+       ],
+       "preempted": 0
+      },
+      {
+       "id": "D",
+       "seq_len": 13,
+       "generated": 5,
+       "max_new": 28,
+       "blocks": [
+        10,
+        11,
+        14
+       ],
+       "preempted": 0
+      }
+     ],
+     "waiting": [
+      {
+       "id": "E",
+       "prompt": 12,
+       "generated": 0,
+       "max_new": 20,
+       "preempted": 0
+      }
+     ],
+     "free_blocks": [
+      16
+     ],
+     "used_blocks": 16,
+     "preemptions_total": 0
+    }
+   },
+   {
+    "step": 6,
+    "arrived": [
+     "F"
+    ],
+    "state": {
+     "running": [
+      {
+       "id": "A",
+       "seq_len": 18,
+       "generated": 8,
+       "max_new": 18,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        16
+       ],
+       "preempted": 0
+      },
+      {
+       "id": "B",
+       "seq_len": 14,
+       "generated": 8,
+       "max_new": 24,
+       "blocks": [
+        3,
+        4,
+        13,
+        10
+       ],
+       "preempted": 0
+      },
+      {
+       "id": "C",
+       "seq_len": 25,
+       "generated": 7,
+       "max_new": 14,
+       "blocks": [
+        5,
+        6,
+        7,
+        8,
+        9,
+        15
+       ],
+       "preempted": 0
+      }
+     ],
+     "waiting": [
+      {
+       "id": "E",
+       "prompt": 12,
+       "generated": 0,
+       "max_new": 20,
+       "preempted": 0
+      },
+      {
+       "id": "F",
+       "prompt": 5,
+       "generated": 0,
+       "max_new": 16,
+       "preempted": 0
+      },
+      {
+       "id": "D",
+       "prompt": 8,
+       "generated": 5,
+       "max_new": 28,
+       "preempted": 1
+      }
+     ],
+     "free_blocks": [
+      11,
+      14
+     ],
+     "used_blocks": 15,
+     "preemptions_total": 1
+    }
+   },
+   {
+    "step": 7,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "A",
+       "seq_len": 19,
+       "generated": 9,
+       "max_new": 18,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        16
+       ],
+       "preempted": 0
+      },
+      {
+       "id": "B",
+       "seq_len": 15,
+       "generated": 9,
+       "max_new": 24,
+       "blocks": [
+        3,
+        4,
+        13,
+        10
+       ],
+       "preempted": 0
+      },
+      {
+       "id": "C",
+       "seq_len": 26,
+       "generated": 8,
+       "max_new": 14,
+       "blocks": [
+        5,
+        6,
+        7,
+        8,
+        9,
+        15,
+        11
+       ],
+       "preempted": 0
+      }
+     ],
+     "waiting": [
+      {
+       "id": "D",
+       "prompt": 8,
+       "generated": 5,
+       "max_new": 28,
+       "preempted": 1
+      },
+      {
+       "id": "E",
+       "prompt": 12,
+       "generated": 0,
+       "max_new": 20,
+       "preempted": 0
+      },
+      {
+       "id": "F",
+       "prompt": 5,
+       "generated": 0,
+       "max_new": 16,
+       "preempted": 0
+      }
+     ],
+     "free_blocks": [
+      14
+     ],
+     "used_blocks": 16,
+     "preemptions_total": 1
+    }
+   },
+   {
+    "step": 8,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "A",
+       "seq_len": 20,
+       "generated": 10,
+       "max_new": 18,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        16
+       ],
+       "preempted": 0
+      },
+      {
+       "id": "B",
+       "seq_len": 16,
+       "generated": 10,
+       "max_new": 24,
+       "blocks": [
+        3,
+        4,
+        13,
+        10
+       ],
+       "preempted": 0
+      },
+      {
+       "id": "C",
+       "seq_len": 27,
+       "generated": 9,
+       "max_new": 14,
+       "blocks": [
+        5,
+        6,
+        7,
+        8,
+        9,
+        15,
+        11
+       ],
+       "preempted": 0
+      }
+     ],
+     "waiting": [
+      {
+       "id": "D",
+       "prompt": 8,
+       "generated": 5,
+       "max_new": 28,
+       "preempted": 1
+      },
+      {
+       "id": "E",
+       "prompt": 12,
+       "generated": 0,
+       "max_new": 20,
+       "preempted": 0
+      },
+      {
+       "id": "F",
+       "prompt": 5,
+       "generated": 0,
+       "max_new": 16,
+       "preempted": 0
+      }
+     ],
+     "free_blocks": [
+      14
+     ],
+     "used_blocks": 16,
+     "preemptions_total": 1
+    }
+   },
+   {
+    "step": 9,
+    "arrived": [
+     "G"
+    ],
+    "state": {
+     "running": [
+      {
+       "id": "A",
+       "seq_len": 21,
+       "generated": 11,
+       "max_new": 18,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        16
+       ],
+       "preempted": 0
+      },
+      {
+       "id": "B",
+       "seq_len": 17,
+       "generated": 11,
+       "max_new": 24,
+       "blocks": [
+        3,
+        4,
+        13,
+        10
+       ],
+       "preempted": 0
+      },
+      {
+       "id": "C",
+       "seq_len": 28,
+       "generated": 10,
+       "max_new": 14,
+       "blocks": [
+        5,
+        6,
+        7,
+        8,
+        9,
+        15,
+        11
+       ],
+       "preempted": 0
+      }
+     ],
+     "waiting": [
+      {
+       "id": "D",
+       "prompt": 8,
+       "generated": 5,
+       "max_new": 28,
+       "preempted": 1
+      },
+      {
+       "id": "E",
+       "prompt": 12,
+       "generated": 0,
+       "max_new": 20,
+       "preempted": 0
+      },
+      {
+       "id": "F",
+       "prompt": 5,
+       "generated": 0,
+       "max_new": 16,
+       "preempted": 0
+      },
+      {
+       "id": "G",
+       "prompt": 14,
+       "generated": 0,
+       "max_new": 22,
+       "preempted": 0
+      }
+     ],
+     "free_blocks": [
+      14
+     ],
+     "used_blocks": 16,
+     "preemptions_total": 1
+    }
+   },
+   {
+    "step": 10,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "A",
+       "seq_len": 22,
+       "generated": 12,
+       "max_new": 18,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        16,
+        14
+       ],
+       "preempted": 0
+      },
+      {
+       "id": "B",
+       "seq_len": 18,
+       "generated": 12,
+       "max_new": 24,
+       "blocks": [
+        3,
+        4,
+        13,
+        10,
+        5
+       ],
+       "preempted": 0
+      }
+     ],
+     "waiting": [
+      {
+       "id": "D",
+       "prompt": 8,
+       "generated": 5,
+       "max_new": 28,
+       "preempted": 1
+      },
+      {
+       "id": "E",
+       "prompt": 12,
+       "generated": 0,
+       "max_new": 20,
+       "preempted": 0
+      },
+      {
+       "id": "F",
+       "prompt": 5,
+       "generated": 0,
+       "max_new": 16,
+       "preempted": 0
+      },
+      {
+       "id": "G",
+       "prompt": 14,
+       "generated": 0,
+       "max_new": 22,
+       "preempted": 0
+      },
+      {
+       "id": "C",
+       "prompt": 18,
+       "generated": 10,
+       "max_new": 14,
+       "preempted": 1
+      }
+     ],
+     "free_blocks": [
+      6,
+      7,
+      8,
+      9,
+      11,
+      15
+     ],
+     "used_blocks": 11,
+     "preemptions_total": 2
+    }
+   },
+   {
+    "step": 11,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "A",
+       "seq_len": 23,
+       "generated": 13,
+       "max_new": 18,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        16,
+        14
+       ],
+       "preempted": 0
+      },
+      {
+       "id": "B",
+       "seq_len": 19,
+       "generated": 13,
+       "max_new": 24,
+       "blocks": [
+        3,
+        4,
+        13,
+        10,
+        5
+       ],
+       "preempted": 0
+      }
+     ],
+     "waiting": [
+      {
+       "id": "C",
+       "prompt": 18,
+       "generated": 10,
+       "max_new": 14,
+       "preempted": 1
+      },
+      {
+       "id": "D",
+       "prompt": 8,
+       "generated": 5,
+       "max_new": 28,
+       "preempted": 1
+      },
+      {
+       "id": "E",
+       "prompt": 12,
+       "generated": 0,
+       "max_new": 20,
+       "preempted": 0
+      },
+      {
+       "id": "F",
+       "prompt": 5,
+       "generated": 0,
+       "max_new": 16,
+       "preempted": 0
+      },
+      {
+       "id": "G",
+       "prompt": 14,
+       "generated": 0,
+       "max_new": 22,
+       "preempted": 0
+      }
+     ],
+     "free_blocks": [
+      6,
+      7,
+      8,
+      9,
+      11,
+      15
+     ],
+     "used_blocks": 11,
+     "preemptions_total": 2
+    }
+   },
+   {
+    "step": 12,
+    "arrived": [
+     "H"
+    ],
+    "state": {
+     "running": [
+      {
+       "id": "A",
+       "seq_len": 24,
+       "generated": 14,
+       "max_new": 18,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        16,
+        14
+       ],
+       "preempted": 0
+      },
+      {
+       "id": "B",
+       "seq_len": 20,
+       "generated": 14,
+       "max_new": 24,
+       "blocks": [
+        3,
+        4,
+        13,
+        10,
+        5
+       ],
+       "preempted": 0
+      }
+     ],
+     "waiting": [
+      {
+       "id": "C",
+       "prompt": 18,
+       "generated": 10,
+       "max_new": 14,
+       "preempted": 1
+      },
+      {
+       "id": "D",
+       "prompt": 8,
+       "generated": 5,
+       "max_new": 28,
+       "preempted": 1
+      },
+      {
+       "id": "E",
+       "prompt": 12,
+       "generated": 0,
+       "max_new": 20,
+       "preempted": 0
+      },
+      {
+       "id": "F",
+       "prompt": 5,
+       "generated": 0,
+       "max_new": 16,
+       "preempted": 0
+      },
+      {
+       "id": "G",
+       "prompt": 14,
+       "generated": 0,
+       "max_new": 22,
+       "preempted": 0
+      },
+      {
+       "id": "H",
+       "prompt": 7,
+       "generated": 0,
+       "max_new": 14,
+       "preempted": 0
+      }
+     ],
+     "free_blocks": [
+      6,
+      7,
+      8,
+      9,
+      11,
+      15
+     ],
+     "used_blocks": 11,
+     "preemptions_total": 2
+    }
+   },
+   {
+    "step": 13,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "A",
+       "seq_len": 25,
+       "generated": 15,
+       "max_new": 18,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        16,
+        14
+       ],
+       "preempted": 0
+      },
+      {
+       "id": "B",
+       "seq_len": 21,
+       "generated": 15,
+       "max_new": 24,
+       "blocks": [
+        3,
+        4,
+        13,
+        10,
+        5
+       ],
+       "preempted": 0
+      }
+     ],
+     "waiting": [
+      {
+       "id": "C",
+       "prompt": 18,
+       "generated": 10,
+       "max_new": 14,
+       "preempted": 1
+      },
+      {
+       "id": "D",
+       "prompt": 8,
+       "generated": 5,
+       "max_new": 28,
+       "preempted": 1
+      },
+      {
+       "id": "E",
+       "prompt": 12,
+       "generated": 0,
+       "max_new": 20,
+       "preempted": 0
+      },
+      {
+       "id": "F",
+       "prompt": 5,
+       "generated": 0,
+       "max_new": 16,
+       "preempted": 0
+      },
+      {
+       "id": "G",
+       "prompt": 14,
+       "generated": 0,
+       "max_new": 22,
+       "preempted": 0
+      },
+      {
+       "id": "H",
+       "prompt": 7,
+       "generated": 0,
+       "max_new": 14,
+       "preempted": 0
+      }
+     ],
+     "free_blocks": [
+      6,
+      7,
+      8,
+      9,
+      11,
+      15
+     ],
+     "used_blocks": 11,
+     "preemptions_total": 2
+    }
+   },
+   {
+    "step": 14,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "A",
+       "seq_len": 26,
+       "generated": 16,
+       "max_new": 18,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        16,
+        14,
+        6
+       ],
+       "preempted": 0
+      },
+      {
+       "id": "B",
+       "seq_len": 22,
+       "generated": 16,
+       "max_new": 24,
+       "blocks": [
+        3,
+        4,
+        13,
+        10,
+        5,
+        7
+       ],
+       "preempted": 0
+      }
+     ],
+     "waiting": [
+      {
+       "id": "C",
+       "prompt": 18,
+       "generated": 10,
+       "max_new": 14,
+       "preempted": 1
+      },
+      {
+       "id": "D",
+       "prompt": 8,
+       "generated": 5,
+       "max_new": 28,
+       "preempted": 1
+      },
+      {
+       "id": "E",
+       "prompt": 12,
+       "generated": 0,
+       "max_new": 20,
+       "preempted": 0
+      },
+      {
+       "id": "F",
+       "prompt": 5,
+       "generated": 0,
+       "max_new": 16,
+       "preempted": 0
+      },
+      {
+       "id": "G",
+       "prompt": 14,
+       "generated": 0,
+       "max_new": 22,
+       "preempted": 0
+      },
+      {
+       "id": "H",
+       "prompt": 7,
+       "generated": 0,
+       "max_new": 14,
+       "preempted": 0
+      }
+     ],
+     "free_blocks": [
+      8,
+      9,
+      11,
+      15
+     ],
+     "used_blocks": 13,
+     "preemptions_total": 2
+    }
+   },
+   {
+    "step": 15,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "A",
+       "seq_len": 27,
+       "generated": 17,
+       "max_new": 18,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        16,
+        14,
+        6
+       ],
+       "preempted": 0
+      },
+      {
+       "id": "B",
+       "seq_len": 23,
+       "generated": 17,
+       "max_new": 24,
+       "blocks": [
+        3,
+        4,
+        13,
+        10,
+        5,
+        7
+       ],
+       "preempted": 0
+      }
+     ],
+     "waiting": [
+      {
+       "id": "C",
+       "prompt": 18,
+       "generated": 10,
+       "max_new": 14,
+       "preempted": 1
+      },
+      {
+       "id": "D",
+       "prompt": 8,
+       "generated": 5,
+       "max_new": 28,
+       "preempted": 1
+      },
+      {
+       "id": "E",
+       "prompt": 12,
+       "generated": 0,
+       "max_new": 20,
+       "preempted": 0
+      },
+      {
+       "id": "F",
+       "prompt": 5,
+       "generated": 0,
+       "max_new": 16,
+       "preempted": 0
+      },
+      {
+       "id": "G",
+       "prompt": 14,
+       "generated": 0,
+       "max_new": 22,
+       "preempted": 0
+      },
+      {
+       "id": "H",
+       "prompt": 7,
+       "generated": 0,
+       "max_new": 14,
+       "preempted": 0
+      }
+     ],
+     "free_blocks": [
+      8,
+      9,
+      11,
+      15
+     ],
+     "used_blocks": 13,
+     "preemptions_total": 2
+    }
+   },
+   {
+    "step": 16,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "A",
+       "seq_len": 28,
+       "generated": 18,
+       "max_new": 18,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        16,
+        14,
+        6
+       ],
+       "preempted": 0
+      },
+      {
+       "id": "B",
+       "seq_len": 24,
+       "generated": 18,
+       "max_new": 24,
+       "blocks": [
+        3,
+        4,
+        13,
+        10,
+        5,
+        7
+       ],
+       "preempted": 0
+      }
+     ],
+     "waiting": [
+      {
+       "id": "C",
+       "prompt": 18,
+       "generated": 10,
+       "max_new": 14,
+       "preempted": 1
+      },
+      {
+       "id": "D",
+       "prompt": 8,
+       "generated": 5,
+       "max_new": 28,
+       "preempted": 1
+      },
+      {
+       "id": "E",
+       "prompt": 12,
+       "generated": 0,
+       "max_new": 20,
+       "preempted": 0
+      },
+      {
+       "id": "F",
+       "prompt": 5,
+       "generated": 0,
+       "max_new": 16,
+       "preempted": 0
+      },
+      {
+       "id": "G",
+       "prompt": 14,
+       "generated": 0,
+       "max_new": 22,
+       "preempted": 0
+      },
+      {
+       "id": "H",
+       "prompt": 7,
+       "generated": 0,
+       "max_new": 14,
+       "preempted": 0
+      }
+     ],
+     "free_blocks": [
+      8,
+      9,
+      11,
+      15
+     ],
+     "used_blocks": 13,
+     "preemptions_total": 2
+    }
+   },
+   {
+    "step": 17,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "B",
+       "seq_len": 25,
+       "generated": 19,
+       "max_new": 24,
+       "blocks": [
+        3,
+        4,
+        13,
+        10,
+        5,
+        7
+       ],
+       "preempted": 0
+      },
+      {
+       "id": "C",
+       "seq_len": 30,
+       "generated": 12,
+       "max_new": 14,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        16,
+        14,
+        6,
+        8
+       ],
+       "preempted": 1
+      }
+     ],
+     "waiting": [
+      {
+       "id": "D",
+       "prompt": 8,
+       "generated": 5,
+       "max_new": 28,
+       "preempted": 1
+      },
+      {
+       "id": "E",
+       "prompt": 12,
+       "generated": 0,
+       "max_new": 20,
+       "preempted": 0
+      },
+      {
+       "id": "F",
+       "prompt": 5,
+       "generated": 0,
+       "max_new": 16,
+       "preempted": 0
+      },
+      {
+       "id": "G",
+       "prompt": 14,
+       "generated": 0,
+       "max_new": 22,
+       "preempted": 0
+      },
+      {
+       "id": "H",
+       "prompt": 7,
+       "generated": 0,
+       "max_new": 14,
+       "preempted": 0
+      }
+     ],
+     "free_blocks": [
+      9,
+      11,
+      15
+     ],
+     "used_blocks": 14,
+     "preemptions_total": 2
+    }
+   },
+   {
+    "step": 18,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "B",
+       "seq_len": 26,
+       "generated": 20,
+       "max_new": 24,
+       "blocks": [
+        3,
+        4,
+        13,
+        10,
+        5,
+        7,
+        9
+       ],
+       "preempted": 0
+      },
+      {
+       "id": "C",
+       "seq_len": 31,
+       "generated": 13,
+       "max_new": 14,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        16,
+        14,
+        6,
+        8
+       ],
+       "preempted": 1
+      }
+     ],
+     "waiting": [
+      {
+       "id": "D",
+       "prompt": 8,
+       "generated": 5,
+       "max_new": 28,
+       "preempted": 1
+      },
+      {
+       "id": "E",
+       "prompt": 12,
+       "generated": 0,
+       "max_new": 20,
+       "preempted": 0
+      },
+      {
+       "id": "F",
+       "prompt": 5,
+       "generated": 0,
+       "max_new": 16,
+       "preempted": 0
+      },
+      {
+       "id": "G",
+       "prompt": 14,
+       "generated": 0,
+       "max_new": 22,
+       "preempted": 0
+      },
+      {
+       "id": "H",
+       "prompt": 7,
+       "generated": 0,
+       "max_new": 14,
+       "preempted": 0
+      }
+     ],
+     "free_blocks": [
+      11,
+      15
+     ],
+     "used_blocks": 15,
+     "preemptions_total": 2
+    }
+   },
+   {
+    "step": 19,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "B",
+       "seq_len": 27,
+       "generated": 21,
+       "max_new": 24,
+       "blocks": [
+        3,
+        4,
+        13,
+        10,
+        5,
+        7,
+        9
+       ],
+       "preempted": 0
+      },
+      {
+       "id": "C",
+       "seq_len": 32,
+       "generated": 14,
+       "max_new": 14,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        16,
+        14,
+        6,
+        8
+       ],
+       "preempted": 1
+      }
+     ],
+     "waiting": [
+      {
+       "id": "D",
+       "prompt": 8,
+       "generated": 5,
+       "max_new": 28,
+       "preempted": 1
+      },
+      {
+       "id": "E",
+       "prompt": 12,
+       "generated": 0,
+       "max_new": 20,
+       "preempted": 0
+      },
+      {
+       "id": "F",
+       "prompt": 5,
+       "generated": 0,
+       "max_new": 16,
+       "preempted": 0
+      },
+      {
+       "id": "G",
+       "prompt": 14,
+       "generated": 0,
+       "max_new": 22,
+       "preempted": 0
+      },
+      {
+       "id": "H",
+       "prompt": 7,
+       "generated": 0,
+       "max_new": 14,
+       "preempted": 0
+      }
+     ],
+     "free_blocks": [
+      11,
+      15
+     ],
+     "used_blocks": 15,
+     "preemptions_total": 2
+    }
+   },
+   {
+    "step": 20,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "B",
+       "seq_len": 28,
+       "generated": 22,
+       "max_new": 24,
+       "blocks": [
+        3,
+        4,
+        13,
+        10,
+        5,
+        7,
+        9
+       ],
+       "preempted": 0
+      },
+      {
+       "id": "D",
+       "seq_len": 15,
+       "generated": 7,
+       "max_new": 28,
+       "blocks": [
+        0,
+        1,
+        2,
+        12
+       ],
+       "preempted": 1
+      },
+      {
+       "id": "E",
+       "seq_len": 14,
+       "generated": 2,
+       "max_new": 20,
+       "blocks": [
+        16,
+        14,
+        6,
+        8
+       ],
+       "preempted": 0
+      }
+     ],
+     "waiting": [
+      {
+       "id": "F",
+       "prompt": 5,
+       "generated": 0,
+       "max_new": 16,
+       "preempted": 0
+      },
+      {
+       "id": "G",
+       "prompt": 14,
+       "generated": 0,
+       "max_new": 22,
+       "preempted": 0
+      },
+      {
+       "id": "H",
+       "prompt": 7,
+       "generated": 0,
+       "max_new": 14,
+       "preempted": 0
+      }
+     ],
+     "free_blocks": [
+      11,
+      15
+     ],
+     "used_blocks": 15,
+     "preemptions_total": 2
+    }
+   },
+   {
+    "step": 21,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "B",
+       "seq_len": 29,
+       "generated": 23,
+       "max_new": 24,
+       "blocks": [
+        3,
+        4,
+        13,
+        10,
+        5,
+        7,
+        9
+       ],
+       "preempted": 0
+      },
+      {
+       "id": "D",
+       "seq_len": 16,
+       "generated": 8,
+       "max_new": 28,
+       "blocks": [
+        0,
+        1,
+        2,
+        12
+       ],
+       "preempted": 1
+      },
+      {
+       "id": "E",
+       "seq_len": 15,
+       "generated": 3,
+       "max_new": 20,
+       "blocks": [
+        16,
+        14,
+        6,
+        8
+       ],
+       "preempted": 0
+      }
+     ],
+     "waiting": [
+      {
+       "id": "F",
+       "prompt": 5,
+       "generated": 0,
+       "max_new": 16,
+       "preempted": 0
+      },
+      {
+       "id": "G",
+       "prompt": 14,
+       "generated": 0,
+       "max_new": 22,
+       "preempted": 0
+      },
+      {
+       "id": "H",
+       "prompt": 7,
+       "generated": 0,
+       "max_new": 14,
+       "preempted": 0
+      }
+     ],
+     "free_blocks": [
+      11,
+      15
+     ],
+     "used_blocks": 15,
+     "preemptions_total": 2
+    }
+   },
+   {
+    "step": 22,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "B",
+       "seq_len": 30,
+       "generated": 24,
+       "max_new": 24,
+       "blocks": [
+        3,
+        4,
+        13,
+        10,
+        5,
+        7,
+        9,
+        15
+       ],
+       "preempted": 0
+      },
+      {
+       "id": "D",
+       "seq_len": 17,
+       "generated": 9,
+       "max_new": 28,
+       "blocks": [
+        0,
+        1,
+        2,
+        12
+       ],
+       "preempted": 1
+      },
+      {
+       "id": "E",
+       "seq_len": 16,
+       "generated": 4,
+       "max_new": 20,
+       "blocks": [
+        16,
+        14,
+        6,
+        8
+       ],
+       "preempted": 0
+      }
+     ],
+     "waiting": [
+      {
+       "id": "F",
+       "prompt": 5,
+       "generated": 0,
+       "max_new": 16,
+       "preempted": 0
+      },
+      {
+       "id": "G",
+       "prompt": 14,
+       "generated": 0,
+       "max_new": 22,
+       "preempted": 0
+      },
+      {
+       "id": "H",
+       "prompt": 7,
+       "generated": 0,
+       "max_new": 14,
+       "preempted": 0
+      }
+     ],
+     "free_blocks": [
+      11
+     ],
+     "used_blocks": 16,
+     "preemptions_total": 2
+    }
+   },
+   {
+    "step": 23,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "D",
+       "seq_len": 18,
+       "generated": 10,
+       "max_new": 28,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        9
+       ],
+       "preempted": 1
+      },
+      {
+       "id": "E",
+       "seq_len": 17,
+       "generated": 5,
+       "max_new": 20,
+       "blocks": [
+        16,
+        14,
+        6,
+        8
+       ],
+       "preempted": 0
+      },
+      {
+       "id": "F",
+       "seq_len": 7,
+       "generated": 2,
+       "max_new": 16,
+       "blocks": [
+        3,
+        4
+       ],
+       "preempted": 0
+      },
+      {
+       "id": "G",
+       "seq_len": 16,
+       "generated": 2,
+       "max_new": 22,
+       "blocks": [
+        13,
+        10,
+        5,
+        7
+       ],
+       "preempted": 0
+      }
+     ],
+     "waiting": [
+      {
+       "id": "H",
+       "prompt": 7,
+       "generated": 0,
+       "max_new": 14,
+       "preempted": 0
+      }
+     ],
+     "free_blocks": [
+      11,
+      15
+     ],
+     "used_blocks": 15,
+     "preemptions_total": 2
+    }
+   },
+   {
+    "step": 24,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "D",
+       "seq_len": 19,
+       "generated": 11,
+       "max_new": 28,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        9
+       ],
+       "preempted": 1
+      },
+      {
+       "id": "E",
+       "seq_len": 18,
+       "generated": 6,
+       "max_new": 20,
+       "blocks": [
+        16,
+        14,
+        6,
+        8,
+        15
+       ],
+       "preempted": 0
+      },
+      {
+       "id": "F",
+       "seq_len": 8,
+       "generated": 3,
+       "max_new": 16,
+       "blocks": [
+        3,
+        4
+       ],
+       "preempted": 0
+      },
+      {
+       "id": "G",
+       "seq_len": 17,
+       "generated": 3,
+       "max_new": 22,
+       "blocks": [
+        13,
+        10,
+        5,
+        7
+       ],
+       "preempted": 0
+      }
+     ],
+     "waiting": [
+      {
+       "id": "H",
+       "prompt": 7,
+       "generated": 0,
+       "max_new": 14,
+       "preempted": 0
+      }
+     ],
+     "free_blocks": [
+      11
+     ],
+     "used_blocks": 16,
+     "preemptions_total": 2
+    }
+   },
+   {
+    "step": 25,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "D",
+       "seq_len": 20,
+       "generated": 12,
+       "max_new": 28,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        9
+       ],
+       "preempted": 1
+      },
+      {
+       "id": "E",
+       "seq_len": 19,
+       "generated": 7,
+       "max_new": 20,
+       "blocks": [
+        16,
+        14,
+        6,
+        8,
+        15
+       ],
+       "preempted": 0
+      },
+      {
+       "id": "F",
+       "seq_len": 9,
+       "generated": 4,
+       "max_new": 16,
+       "blocks": [
+        3,
+        4
+       ],
+       "preempted": 0
+      },
+      {
+       "id": "G",
+       "seq_len": 18,
+       "generated": 4,
+       "max_new": 22,
+       "blocks": [
+        13,
+        10,
+        5,
+        7,
+        11
+       ],
+       "preempted": 0
+      }
+     ],
+     "waiting": [
+      {
+       "id": "H",
+       "prompt": 7,
+       "generated": 0,
+       "max_new": 14,
+       "preempted": 0
+      }
+     ],
+     "free_blocks": [],
+     "used_blocks": 17,
+     "preemptions_total": 2
+    }
+   },
+   {
+    "step": 26,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "D",
+       "seq_len": 21,
+       "generated": 13,
+       "max_new": 28,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        9
+       ],
+       "preempted": 1
+      },
+      {
+       "id": "E",
+       "seq_len": 20,
+       "generated": 8,
+       "max_new": 20,
+       "blocks": [
+        16,
+        14,
+        6,
+        8,
+        15
+       ],
+       "preempted": 0
+      },
+      {
+       "id": "F",
+       "seq_len": 10,
+       "generated": 5,
+       "max_new": 16,
+       "blocks": [
+        3,
+        4,
+        13
+       ],
+       "preempted": 0
+      }
+     ],
+     "waiting": [
+      {
+       "id": "H",
+       "prompt": 7,
+       "generated": 0,
+       "max_new": 14,
+       "preempted": 0
+      },
+      {
+       "id": "G",
+       "prompt": 14,
+       "generated": 4,
+       "max_new": 22,
+       "preempted": 1
+      }
+     ],
+     "free_blocks": [
+      5,
+      7,
+      10,
+      11
+     ],
+     "used_blocks": 13,
+     "preemptions_total": 3
+    }
+   },
+   {
+    "step": 27,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "D",
+       "seq_len": 22,
+       "generated": 14,
+       "max_new": 28,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        9,
+        10
+       ],
+       "preempted": 1
+      },
+      {
+       "id": "E",
+       "seq_len": 21,
+       "generated": 9,
+       "max_new": 20,
+       "blocks": [
+        16,
+        14,
+        6,
+        8,
+        15
+       ],
+       "preempted": 0
+      },
+      {
+       "id": "F",
+       "seq_len": 11,
+       "generated": 6,
+       "max_new": 16,
+       "blocks": [
+        3,
+        4,
+        13
+       ],
+       "preempted": 0
+      }
+     ],
+     "waiting": [
+      {
+       "id": "G",
+       "prompt": 14,
+       "generated": 4,
+       "max_new": 22,
+       "preempted": 1
+      },
+      {
+       "id": "H",
+       "prompt": 7,
+       "generated": 0,
+       "max_new": 14,
+       "preempted": 0
+      }
+     ],
+     "free_blocks": [
+      5,
+      7,
+      11
+     ],
+     "used_blocks": 14,
+     "preemptions_total": 3
+    }
+   },
+   {
+    "step": 28,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "D",
+       "seq_len": 23,
+       "generated": 15,
+       "max_new": 28,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        9,
+        10
+       ],
+       "preempted": 1
+      },
+      {
+       "id": "E",
+       "seq_len": 22,
+       "generated": 10,
+       "max_new": 20,
+       "blocks": [
+        16,
+        14,
+        6,
+        8,
+        15,
+        5
+       ],
+       "preempted": 0
+      },
+      {
+       "id": "F",
+       "seq_len": 12,
+       "generated": 7,
+       "max_new": 16,
+       "blocks": [
+        3,
+        4,
+        13
+       ],
+       "preempted": 0
+      }
+     ],
+     "waiting": [
+      {
+       "id": "G",
+       "prompt": 14,
+       "generated": 4,
+       "max_new": 22,
+       "preempted": 1
+      },
+      {
+       "id": "H",
+       "prompt": 7,
+       "generated": 0,
+       "max_new": 14,
+       "preempted": 0
+      }
+     ],
+     "free_blocks": [
+      7,
+      11
+     ],
+     "used_blocks": 15,
+     "preemptions_total": 3
+    }
+   },
+   {
+    "step": 29,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "D",
+       "seq_len": 24,
+       "generated": 16,
+       "max_new": 28,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        9,
+        10
+       ],
+       "preempted": 1
+      },
+      {
+       "id": "E",
+       "seq_len": 23,
+       "generated": 11,
+       "max_new": 20,
+       "blocks": [
+        16,
+        14,
+        6,
+        8,
+        15,
+        5
+       ],
+       "preempted": 0
+      },
+      {
+       "id": "F",
+       "seq_len": 13,
+       "generated": 8,
+       "max_new": 16,
+       "blocks": [
+        3,
+        4,
+        13
+       ],
+       "preempted": 0
+      }
+     ],
+     "waiting": [
+      {
+       "id": "G",
+       "prompt": 14,
+       "generated": 4,
+       "max_new": 22,
+       "preempted": 1
+      },
+      {
+       "id": "H",
+       "prompt": 7,
+       "generated": 0,
+       "max_new": 14,
+       "preempted": 0
+      }
+     ],
+     "free_blocks": [
+      7,
+      11
+     ],
+     "used_blocks": 15,
+     "preemptions_total": 3
+    }
+   },
+   {
+    "step": 30,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "D",
+       "seq_len": 25,
+       "generated": 17,
+       "max_new": 28,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        9,
+        10
+       ],
+       "preempted": 1
+      },
+      {
+       "id": "E",
+       "seq_len": 24,
+       "generated": 12,
+       "max_new": 20,
+       "blocks": [
+        16,
+        14,
+        6,
+        8,
+        15,
+        5
+       ],
+       "preempted": 0
+      },
+      {
+       "id": "F",
+       "seq_len": 14,
+       "generated": 9,
+       "max_new": 16,
+       "blocks": [
+        3,
+        4,
+        13,
+        7
+       ],
+       "preempted": 0
+      }
+     ],
+     "waiting": [
+      {
+       "id": "G",
+       "prompt": 14,
+       "generated": 4,
+       "max_new": 22,
+       "preempted": 1
+      },
+      {
+       "id": "H",
+       "prompt": 7,
+       "generated": 0,
+       "max_new": 14,
+       "preempted": 0
+      }
+     ],
+     "free_blocks": [
+      11
+     ],
+     "used_blocks": 16,
+     "preemptions_total": 3
+    }
+   },
+   {
+    "step": 31,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "D",
+       "seq_len": 26,
+       "generated": 18,
+       "max_new": 28,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        9,
+        10,
+        11
+       ],
+       "preempted": 1
+      },
+      {
+       "id": "E",
+       "seq_len": 25,
+       "generated": 13,
+       "max_new": 20,
+       "blocks": [
+        16,
+        14,
+        6,
+        8,
+        15,
+        5
+       ],
+       "preempted": 0
+      },
+      {
+       "id": "F",
+       "seq_len": 15,
+       "generated": 10,
+       "max_new": 16,
+       "blocks": [
+        3,
+        4,
+        13,
+        7
+       ],
+       "preempted": 0
+      }
+     ],
+     "waiting": [
+      {
+       "id": "G",
+       "prompt": 14,
+       "generated": 4,
+       "max_new": 22,
+       "preempted": 1
+      },
+      {
+       "id": "H",
+       "prompt": 7,
+       "generated": 0,
+       "max_new": 14,
+       "preempted": 0
+      }
+     ],
+     "free_blocks": [],
+     "used_blocks": 17,
+     "preemptions_total": 3
+    }
+   },
+   {
+    "step": 32,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "D",
+       "seq_len": 27,
+       "generated": 19,
+       "max_new": 28,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        9,
+        10,
+        11
+       ],
+       "preempted": 1
+      },
+      {
+       "id": "E",
+       "seq_len": 26,
+       "generated": 14,
+       "max_new": 20,
+       "blocks": [
+        16,
+        14,
+        6,
+        8,
+        15,
+        5,
+        3
+       ],
+       "preempted": 0
+      }
+     ],
+     "waiting": [
+      {
+       "id": "G",
+       "prompt": 14,
+       "generated": 4,
+       "max_new": 22,
+       "preempted": 1
+      },
+      {
+       "id": "H",
+       "prompt": 7,
+       "generated": 0,
+       "max_new": 14,
+       "preempted": 0
+      },
+      {
+       "id": "F",
+       "prompt": 5,
+       "generated": 10,
+       "max_new": 16,
+       "preempted": 1
+      }
+     ],
+     "free_blocks": [
+      4,
+      7,
+      13
+     ],
+     "used_blocks": 14,
+     "preemptions_total": 4
+    }
+   },
+   {
+    "step": 33,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "D",
+       "seq_len": 28,
+       "generated": 20,
+       "max_new": 28,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        9,
+        10,
+        11
+       ],
+       "preempted": 1
+      },
+      {
+       "id": "E",
+       "seq_len": 27,
+       "generated": 15,
+       "max_new": 20,
+       "blocks": [
+        16,
+        14,
+        6,
+        8,
+        15,
+        5,
+        3
+       ],
+       "preempted": 0
+      }
+     ],
+     "waiting": [
+      {
+       "id": "F",
+       "prompt": 5,
+       "generated": 10,
+       "max_new": 16,
+       "preempted": 1
+      },
+      {
+       "id": "G",
+       "prompt": 14,
+       "generated": 4,
+       "max_new": 22,
+       "preempted": 1
+      },
+      {
+       "id": "H",
+       "prompt": 7,
+       "generated": 0,
+       "max_new": 14,
+       "preempted": 0
+      }
+     ],
+     "free_blocks": [
+      4,
+      7,
+      13
+     ],
+     "used_blocks": 14,
+     "preemptions_total": 4
+    }
+   },
+   {
+    "step": 34,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "D",
+       "seq_len": 29,
+       "generated": 21,
+       "max_new": 28,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        9,
+        10,
+        11
+       ],
+       "preempted": 1
+      },
+      {
+       "id": "E",
+       "seq_len": 28,
+       "generated": 16,
+       "max_new": 20,
+       "blocks": [
+        16,
+        14,
+        6,
+        8,
+        15,
+        5,
+        3
+       ],
+       "preempted": 0
+      }
+     ],
+     "waiting": [
+      {
+       "id": "F",
+       "prompt": 5,
+       "generated": 10,
+       "max_new": 16,
+       "preempted": 1
+      },
+      {
+       "id": "G",
+       "prompt": 14,
+       "generated": 4,
+       "max_new": 22,
+       "preempted": 1
+      },
+      {
+       "id": "H",
+       "prompt": 7,
+       "generated": 0,
+       "max_new": 14,
+       "preempted": 0
+      }
+     ],
+     "free_blocks": [
+      4,
+      7,
+      13
+     ],
+     "used_blocks": 14,
+     "preemptions_total": 4
+    }
+   },
+   {
+    "step": 35,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "D",
+       "seq_len": 30,
+       "generated": 22,
+       "max_new": 28,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        9,
+        10,
+        11,
+        4
+       ],
+       "preempted": 1
+      },
+      {
+       "id": "E",
+       "seq_len": 29,
+       "generated": 17,
+       "max_new": 20,
+       "blocks": [
+        16,
+        14,
+        6,
+        8,
+        15,
+        5,
+        3
+       ],
+       "preempted": 0
+      }
+     ],
+     "waiting": [
+      {
+       "id": "F",
+       "prompt": 5,
+       "generated": 10,
+       "max_new": 16,
+       "preempted": 1
+      },
+      {
+       "id": "G",
+       "prompt": 14,
+       "generated": 4,
+       "max_new": 22,
+       "preempted": 1
+      },
+      {
+       "id": "H",
+       "prompt": 7,
+       "generated": 0,
+       "max_new": 14,
+       "preempted": 0
+      }
+     ],
+     "free_blocks": [
+      7,
+      13
+     ],
+     "used_blocks": 15,
+     "preemptions_total": 4
+    }
+   },
+   {
+    "step": 36,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "D",
+       "seq_len": 31,
+       "generated": 23,
+       "max_new": 28,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        9,
+        10,
+        11,
+        4
+       ],
+       "preempted": 1
+      },
+      {
+       "id": "E",
+       "seq_len": 30,
+       "generated": 18,
+       "max_new": 20,
+       "blocks": [
+        16,
+        14,
+        6,
+        8,
+        15,
+        5,
+        3,
+        13
+       ],
+       "preempted": 0
+      }
+     ],
+     "waiting": [
+      {
+       "id": "F",
+       "prompt": 5,
+       "generated": 10,
+       "max_new": 16,
+       "preempted": 1
+      },
+      {
+       "id": "G",
+       "prompt": 14,
+       "generated": 4,
+       "max_new": 22,
+       "preempted": 1
+      },
+      {
+       "id": "H",
+       "prompt": 7,
+       "generated": 0,
+       "max_new": 14,
+       "preempted": 0
+      }
+     ],
+     "free_blocks": [
+      7
+     ],
+     "used_blocks": 16,
+     "preemptions_total": 4
+    }
+   },
+   {
+    "step": 37,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "D",
+       "seq_len": 32,
+       "generated": 24,
+       "max_new": 28,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        9,
+        10,
+        11,
+        4
+       ],
+       "preempted": 1
+      },
+      {
+       "id": "E",
+       "seq_len": 31,
+       "generated": 19,
+       "max_new": 20,
+       "blocks": [
+        16,
+        14,
+        6,
+        8,
+        15,
+        5,
+        3,
+        13
+       ],
+       "preempted": 0
+      }
+     ],
+     "waiting": [
+      {
+       "id": "F",
+       "prompt": 5,
+       "generated": 10,
+       "max_new": 16,
+       "preempted": 1
+      },
+      {
+       "id": "G",
+       "prompt": 14,
+       "generated": 4,
+       "max_new": 22,
+       "preempted": 1
+      },
+      {
+       "id": "H",
+       "prompt": 7,
+       "generated": 0,
+       "max_new": 14,
+       "preempted": 0
+      }
+     ],
+     "free_blocks": [
+      7
+     ],
+     "used_blocks": 16,
+     "preemptions_total": 4
+    }
+   },
+   {
+    "step": 38,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "D",
+       "seq_len": 33,
+       "generated": 25,
+       "max_new": 28,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        9,
+        10,
+        11,
+        4
+       ],
+       "preempted": 1
+      },
+      {
+       "id": "E",
+       "seq_len": 32,
+       "generated": 20,
+       "max_new": 20,
+       "blocks": [
+        16,
+        14,
+        6,
+        8,
+        15,
+        5,
+        3,
+        13
+       ],
+       "preempted": 0
+      }
+     ],
+     "waiting": [
+      {
+       "id": "F",
+       "prompt": 5,
+       "generated": 10,
+       "max_new": 16,
+       "preempted": 1
+      },
+      {
+       "id": "G",
+       "prompt": 14,
+       "generated": 4,
+       "max_new": 22,
+       "preempted": 1
+      },
+      {
+       "id": "H",
+       "prompt": 7,
+       "generated": 0,
+       "max_new": 14,
+       "preempted": 0
+      }
+     ],
+     "free_blocks": [
+      7
+     ],
+     "used_blocks": 16,
+     "preemptions_total": 4
+    }
+   },
+   {
+    "step": 39,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "D",
+       "seq_len": 34,
+       "generated": 26,
+       "max_new": 28,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        9,
+        10,
+        11,
+        4,
+        15
+       ],
+       "preempted": 1
+      },
+      {
+       "id": "F",
+       "seq_len": 17,
+       "generated": 12,
+       "max_new": 16,
+       "blocks": [
+        16,
+        14,
+        6,
+        8
+       ],
+       "preempted": 1
+      }
+     ],
+     "waiting": [
+      {
+       "id": "G",
+       "prompt": 14,
+       "generated": 4,
+       "max_new": 22,
+       "preempted": 1
+      },
+      {
+       "id": "H",
+       "prompt": 7,
+       "generated": 0,
+       "max_new": 14,
+       "preempted": 0
+      }
+     ],
+     "free_blocks": [
+      3,
+      5,
+      7,
+      13
+     ],
+     "used_blocks": 13,
+     "preemptions_total": 4
+    }
+   },
+   {
+    "step": 40,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "D",
+       "seq_len": 35,
+       "generated": 27,
+       "max_new": 28,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        9,
+        10,
+        11,
+        4,
+        15
+       ],
+       "preempted": 1
+      },
+      {
+       "id": "F",
+       "seq_len": 18,
+       "generated": 13,
+       "max_new": 16,
+       "blocks": [
+        16,
+        14,
+        6,
+        8,
+        5
+       ],
+       "preempted": 1
+      }
+     ],
+     "waiting": [
+      {
+       "id": "G",
+       "prompt": 14,
+       "generated": 4,
+       "max_new": 22,
+       "preempted": 1
+      },
+      {
+       "id": "H",
+       "prompt": 7,
+       "generated": 0,
+       "max_new": 14,
+       "preempted": 0
+      }
+     ],
+     "free_blocks": [
+      3,
+      7,
+      13
+     ],
+     "used_blocks": 14,
+     "preemptions_total": 4
+    }
+   },
+   {
+    "step": 41,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "D",
+       "seq_len": 36,
+       "generated": 28,
+       "max_new": 28,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        9,
+        10,
+        11,
+        4,
+        15
+       ],
+       "preempted": 1
+      },
+      {
+       "id": "F",
+       "seq_len": 19,
+       "generated": 14,
+       "max_new": 16,
+       "blocks": [
+        16,
+        14,
+        6,
+        8,
+        5
+       ],
+       "preempted": 1
+      }
+     ],
+     "waiting": [
+      {
+       "id": "G",
+       "prompt": 14,
+       "generated": 4,
+       "max_new": 22,
+       "preempted": 1
+      },
+      {
+       "id": "H",
+       "prompt": 7,
+       "generated": 0,
+       "max_new": 14,
+       "preempted": 0
+      }
+     ],
+     "free_blocks": [
+      3,
+      7,
+      13
+     ],
+     "used_blocks": 14,
+     "preemptions_total": 4
+    }
+   },
+   {
+    "step": 42,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "F",
+       "seq_len": 20,
+       "generated": 15,
+       "max_new": 16,
+       "blocks": [
+        16,
+        14,
+        6,
+        8,
+        5
+       ],
+       "preempted": 1
+      },
+      {
+       "id": "G",
+       "seq_len": 20,
+       "generated": 6,
+       "max_new": 22,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        9
+       ],
+       "preempted": 1
+      },
+      {
+       "id": "H",
+       "seq_len": 9,
+       "generated": 2,
+       "max_new": 14,
+       "blocks": [
+        10,
+        11
+       ],
+       "preempted": 0
+      }
+     ],
+     "waiting": [],
+     "free_blocks": [
+      3,
+      4,
+      7,
+      13,
+      15
+     ],
+     "used_blocks": 12,
+     "preemptions_total": 4
+    }
+   },
+   {
+    "step": 43,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "F",
+       "seq_len": 21,
+       "generated": 16,
+       "max_new": 16,
+       "blocks": [
+        16,
+        14,
+        6,
+        8,
+        5
+       ],
+       "preempted": 1
+      },
+      {
+       "id": "G",
+       "seq_len": 21,
+       "generated": 7,
+       "max_new": 22,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        9
+       ],
+       "preempted": 1
+      },
+      {
+       "id": "H",
+       "seq_len": 10,
+       "generated": 3,
+       "max_new": 14,
+       "blocks": [
+        10,
+        11,
+        4
+       ],
+       "preempted": 0
+      }
+     ],
+     "waiting": [],
+     "free_blocks": [
+      3,
+      7,
+      13,
+      15
+     ],
+     "used_blocks": 13,
+     "preemptions_total": 4
+    }
+   },
+   {
+    "step": 44,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "G",
+       "seq_len": 22,
+       "generated": 8,
+       "max_new": 22,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        9,
+        16
+       ],
+       "preempted": 1
+      },
+      {
+       "id": "H",
+       "seq_len": 11,
+       "generated": 4,
+       "max_new": 14,
+       "blocks": [
+        10,
+        11,
+        4
+       ],
+       "preempted": 0
+      }
+     ],
+     "waiting": [],
+     "free_blocks": [
+      3,
+      5,
+      6,
+      7,
+      8,
+      13,
+      14,
+      15
+     ],
+     "used_blocks": 9,
+     "preemptions_total": 4
+    }
+   },
+   {
+    "step": 45,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "G",
+       "seq_len": 23,
+       "generated": 9,
+       "max_new": 22,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        9,
+        16
+       ],
+       "preempted": 1
+      },
+      {
+       "id": "H",
+       "seq_len": 12,
+       "generated": 5,
+       "max_new": 14,
+       "blocks": [
+        10,
+        11,
+        4
+       ],
+       "preempted": 0
+      }
+     ],
+     "waiting": [],
+     "free_blocks": [
+      3,
+      5,
+      6,
+      7,
+      8,
+      13,
+      14,
+      15
+     ],
+     "used_blocks": 9,
+     "preemptions_total": 4
+    }
+   },
+   {
+    "step": 46,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "G",
+       "seq_len": 24,
+       "generated": 10,
+       "max_new": 22,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        9,
+        16
+       ],
+       "preempted": 1
+      },
+      {
+       "id": "H",
+       "seq_len": 13,
+       "generated": 6,
+       "max_new": 14,
+       "blocks": [
+        10,
+        11,
+        4
+       ],
+       "preempted": 0
+      }
+     ],
+     "waiting": [],
+     "free_blocks": [
+      3,
+      5,
+      6,
+      7,
+      8,
+      13,
+      14,
+      15
+     ],
+     "used_blocks": 9,
+     "preemptions_total": 4
+    }
+   },
+   {
+    "step": 47,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "G",
+       "seq_len": 25,
+       "generated": 11,
+       "max_new": 22,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        9,
+        16
+       ],
+       "preempted": 1
+      },
+      {
+       "id": "H",
+       "seq_len": 14,
+       "generated": 7,
+       "max_new": 14,
+       "blocks": [
+        10,
+        11,
+        4,
+        14
+       ],
+       "preempted": 0
+      }
+     ],
+     "waiting": [],
+     "free_blocks": [
+      3,
+      5,
+      6,
+      7,
+      8,
+      13,
+      15
+     ],
+     "used_blocks": 10,
+     "preemptions_total": 4
+    }
+   },
+   {
+    "step": 48,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "G",
+       "seq_len": 26,
+       "generated": 12,
+       "max_new": 22,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        9,
+        16,
+        6
+       ],
+       "preempted": 1
+      },
+      {
+       "id": "H",
+       "seq_len": 15,
+       "generated": 8,
+       "max_new": 14,
+       "blocks": [
+        10,
+        11,
+        4,
+        14
+       ],
+       "preempted": 0
+      }
+     ],
+     "waiting": [],
+     "free_blocks": [
+      3,
+      5,
+      7,
+      8,
+      13,
+      15
+     ],
+     "used_blocks": 11,
+     "preemptions_total": 4
+    }
+   },
+   {
+    "step": 49,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "G",
+       "seq_len": 27,
+       "generated": 13,
+       "max_new": 22,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        9,
+        16,
+        6
+       ],
+       "preempted": 1
+      },
+      {
+       "id": "H",
+       "seq_len": 16,
+       "generated": 9,
+       "max_new": 14,
+       "blocks": [
+        10,
+        11,
+        4,
+        14
+       ],
+       "preempted": 0
+      }
+     ],
+     "waiting": [],
+     "free_blocks": [
+      3,
+      5,
+      7,
+      8,
+      13,
+      15
+     ],
+     "used_blocks": 11,
+     "preemptions_total": 4
+    }
+   },
+   {
+    "step": 50,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "G",
+       "seq_len": 28,
+       "generated": 14,
+       "max_new": 22,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        9,
+        16,
+        6
+       ],
+       "preempted": 1
+      },
+      {
+       "id": "H",
+       "seq_len": 17,
+       "generated": 10,
+       "max_new": 14,
+       "blocks": [
+        10,
+        11,
+        4,
+        14
+       ],
+       "preempted": 0
+      }
+     ],
+     "waiting": [],
+     "free_blocks": [
+      3,
+      5,
+      7,
+      8,
+      13,
+      15
+     ],
+     "used_blocks": 11,
+     "preemptions_total": 4
+    }
+   },
+   {
+    "step": 51,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "G",
+       "seq_len": 29,
+       "generated": 15,
+       "max_new": 22,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        9,
+        16,
+        6
+       ],
+       "preempted": 1
+      },
+      {
+       "id": "H",
+       "seq_len": 18,
+       "generated": 11,
+       "max_new": 14,
+       "blocks": [
+        10,
+        11,
+        4,
+        14,
+        8
+       ],
+       "preempted": 0
+      }
+     ],
+     "waiting": [],
+     "free_blocks": [
+      3,
+      5,
+      7,
+      13,
+      15
+     ],
+     "used_blocks": 12,
+     "preemptions_total": 4
+    }
+   },
+   {
+    "step": 52,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "G",
+       "seq_len": 30,
+       "generated": 16,
+       "max_new": 22,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        9,
+        16,
+        6,
+        5
+       ],
+       "preempted": 1
+      },
+      {
+       "id": "H",
+       "seq_len": 19,
+       "generated": 12,
+       "max_new": 14,
+       "blocks": [
+        10,
+        11,
+        4,
+        14,
+        8
+       ],
+       "preempted": 0
+      }
+     ],
+     "waiting": [],
+     "free_blocks": [
+      3,
+      7,
+      13,
+      15
+     ],
+     "used_blocks": 13,
+     "preemptions_total": 4
+    }
+   },
+   {
+    "step": 53,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "G",
+       "seq_len": 31,
+       "generated": 17,
+       "max_new": 22,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        9,
+        16,
+        6,
+        5
+       ],
+       "preempted": 1
+      },
+      {
+       "id": "H",
+       "seq_len": 20,
+       "generated": 13,
+       "max_new": 14,
+       "blocks": [
+        10,
+        11,
+        4,
+        14,
+        8
+       ],
+       "preempted": 0
+      }
+     ],
+     "waiting": [],
+     "free_blocks": [
+      3,
+      7,
+      13,
+      15
+     ],
+     "used_blocks": 13,
+     "preemptions_total": 4
+    }
+   },
+   {
+    "step": 54,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "G",
+       "seq_len": 32,
+       "generated": 18,
+       "max_new": 22,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        9,
+        16,
+        6,
+        5
+       ],
+       "preempted": 1
+      },
+      {
+       "id": "H",
+       "seq_len": 21,
+       "generated": 14,
+       "max_new": 14,
+       "blocks": [
+        10,
+        11,
+        4,
+        14,
+        8
+       ],
+       "preempted": 0
+      }
+     ],
+     "waiting": [],
+     "free_blocks": [
+      3,
+      7,
+      13,
+      15
+     ],
+     "used_blocks": 13,
+     "preemptions_total": 4
+    }
+   },
+   {
+    "step": 55,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "G",
+       "seq_len": 33,
+       "generated": 19,
+       "max_new": 22,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        9,
+        16,
+        6,
+        5
+       ],
+       "preempted": 1
+      }
+     ],
+     "waiting": [],
+     "free_blocks": [
+      3,
+      4,
+      7,
+      8,
+      10,
+      11,
+      13,
+      14,
+      15
+     ],
+     "used_blocks": 8,
+     "preemptions_total": 4
+    }
+   },
+   {
+    "step": 56,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "G",
+       "seq_len": 34,
+       "generated": 20,
+       "max_new": 22,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        9,
+        16,
+        6,
+        5,
+        10
+       ],
+       "preempted": 1
+      }
+     ],
+     "waiting": [],
+     "free_blocks": [
+      3,
+      4,
+      7,
+      8,
+      11,
+      13,
+      14,
+      15
+     ],
+     "used_blocks": 9,
+     "preemptions_total": 4
+    }
+   },
+   {
+    "step": 57,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "G",
+       "seq_len": 35,
+       "generated": 21,
+       "max_new": 22,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        9,
+        16,
+        6,
+        5,
+        10
+       ],
+       "preempted": 1
+      }
+     ],
+     "waiting": [],
+     "free_blocks": [
+      3,
+      4,
+      7,
+      8,
+      11,
+      13,
+      14,
+      15
+     ],
+     "used_blocks": 9,
+     "preemptions_total": 4
+    }
+   },
+   {
+    "step": 58,
+    "arrived": [],
+    "state": {
+     "running": [
+      {
+       "id": "G",
+       "seq_len": 36,
+       "generated": 22,
+       "max_new": 22,
+       "blocks": [
+        0,
+        1,
+        2,
+        12,
+        9,
+        16,
+        6,
+        5,
+        10
+       ],
+       "preempted": 1
+      }
+     ],
+     "waiting": [],
+     "free_blocks": [
+      3,
+      4,
+      7,
+      8,
+      11,
+      13,
+      14,
+      15
+     ],
+     "used_blocks": 9,
+     "preemptions_total": 4
+    }
+   },
+   {
+    "step": 59,
+    "arrived": [],
+    "state": {
+     "running": [],
+     "waiting": [],
+     "free_blocks": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16
+     ],
+     "used_blocks": 0,
+     "preemptions_total": 4
+    }
+   }
+  ],
+  "events": [
+   {
+    "step": 0,
+    "type": "arrive",
+    "id": "A",
+    "prompt": 10,
+    "new_tokens": 18
+   },
+   {
+    "step": 0,
+    "type": "arrive",
+    "id": "B",
+    "prompt": 6,
+    "new_tokens": 24
+   },
+   {
+    "step": 0,
+    "type": "allocate",
+    "id": "A",
+    "blocks": [
+     0,
+     1,
+     2
+    ],
+    "recompute": false
+   },
+   {
+    "step": 0,
+    "type": "allocate",
+    "id": "B",
+    "blocks": [
+     3,
+     4
+    ],
+    "recompute": false
+   },
+   {
+    "step": 0,
+    "type": "prefill",
+    "id": "A",
+    "tokens": 10,
+    "recompute": false
+   },
+   {
+    "step": 0,
+    "type": "token",
+    "id": "A",
+    "n": 1,
+    "finished": false
+   },
+   {
+    "step": 0,
+    "type": "prefill",
+    "id": "B",
+    "tokens": 6,
+    "recompute": false
+   },
+   {
+    "step": 0,
+    "type": "token",
+    "id": "B",
+    "n": 1,
+    "finished": false
+   },
+   {
+    "step": 0,
+    "type": "token",
+    "id": "A",
+    "n": 2,
+    "finished": false
+   },
+   {
+    "step": 0,
+    "type": "token",
+    "id": "B",
+    "n": 2,
+    "finished": false
+   },
+   {
+    "step": 1,
+    "type": "arrive",
+    "id": "C",
+    "prompt": 18,
+    "new_tokens": 14
+   },
+   {
+    "step": 1,
+    "type": "allocate",
+    "id": "C",
+    "blocks": [
+     5,
+     6,
+     7,
+     8,
+     9
+    ],
+    "recompute": false
+   },
+   {
+    "step": 1,
+    "type": "prefill",
+    "id": "C",
+    "tokens": 18,
+    "recompute": false
+   },
+   {
+    "step": 1,
+    "type": "token",
+    "id": "C",
+    "n": 1,
+    "finished": false
+   },
+   {
+    "step": 1,
+    "type": "token",
+    "id": "A",
+    "n": 3,
+    "finished": false
+   },
+   {
+    "step": 1,
+    "type": "token",
+    "id": "B",
+    "n": 3,
+    "finished": false
+   },
+   {
+    "step": 1,
+    "type": "token",
+    "id": "C",
+    "n": 2,
+    "finished": false
+   },
+   {
+    "step": 2,
+    "type": "arrive",
+    "id": "D",
+    "prompt": 8,
+    "new_tokens": 28
+   },
+   {
+    "step": 2,
+    "type": "allocate",
+    "id": "D",
+    "blocks": [
+     10,
+     11
+    ],
+    "recompute": false
+   },
+   {
+    "step": 2,
+    "type": "prefill",
+    "id": "D",
+    "tokens": 8,
+    "recompute": false
+   },
+   {
+    "step": 2,
+    "type": "token",
+    "id": "D",
+    "n": 1,
+    "finished": false
+   },
+   {
+    "step": 2,
+    "type": "grow",
+    "id": "A",
+    "block": 12
+   },
+   {
+    "step": 2,
+    "type": "grow",
+    "id": "B",
+    "block": 13
+   },
+   {
+    "step": 2,
+    "type": "grow",
+    "id": "D",
+    "block": 14
+   },
+   {
+    "step": 2,
+    "type": "token",
+    "id": "A",
+    "n": 4,
+    "finished": false
+   },
+   {
+    "step": 2,
+    "type": "token",
+    "id": "B",
+    "n": 4,
+    "finished": false
+   },
+   {
+    "step": 2,
+    "type": "token",
+    "id": "C",
+    "n": 3,
+    "finished": false
+   },
+   {
+    "step": 2,
+    "type": "token",
+    "id": "D",
+    "n": 2,
+    "finished": false
+   },
+   {
+    "step": 3,
+    "type": "grow",
+    "id": "C",
+    "block": 15
+   },
+   {
+    "step": 3,
+    "type": "token",
+    "id": "A",
+    "n": 5,
+    "finished": false
+   },
+   {
+    "step": 3,
+    "type": "token",
+    "id": "B",
+    "n": 5,
+    "finished": false
+   },
+   {
+    "step": 3,
+    "type": "token",
+    "id": "C",
+    "n": 4,
+    "finished": false
+   },
+   {
+    "step": 3,
+    "type": "token",
+    "id": "D",
+    "n": 3,
+    "finished": false
+   },
+   {
+    "step": 4,
+    "type": "arrive",
+    "id": "E",
+    "prompt": 12,
+    "new_tokens": 20
+   },
+   {
+    "step": 4,
+    "type": "token",
+    "id": "A",
+    "n": 6,
+    "finished": false
+   },
+   {
+    "step": 4,
+    "type": "token",
+    "id": "B",
+    "n": 6,
+    "finished": false
+   },
+   {
+    "step": 4,
+    "type": "token",
+    "id": "C",
+    "n": 5,
+    "finished": false
+   },
+   {
+    "step": 4,
+    "type": "token",
+    "id": "D",
+    "n": 4,
+    "finished": false
+   },
+   {
+    "step": 5,
+    "type": "token",
+    "id": "A",
+    "n": 7,
+    "finished": false
+   },
+   {
+    "step": 5,
+    "type": "token",
+    "id": "B",
+    "n": 7,
+    "finished": false
+   },
+   {
+    "step": 5,
+    "type": "token",
+    "id": "C",
+    "n": 6,
+    "finished": false
+   },
+   {
+    "step": 5,
+    "type": "token",
+    "id": "D",
+    "n": 5,
+    "finished": false
+   },
+   {
+    "step": 6,
+    "type": "arrive",
+    "id": "F",
+    "prompt": 5,
+    "new_tokens": 16
+   },
+   {
+    "step": 6,
+    "type": "grow",
+    "id": "A",
+    "block": 16
+   },
+   {
+    "step": 6,
+    "type": "out_of_blocks",
+    "id": "B"
+   },
+   {
+    "step": 6,
+    "type": "preempt",
+    "id": "D",
+    "generated": 5,
+    "kv_tokens_discarded": 13,
+    "blocks": [
+     10,
+     11,
+     14
+    ]
+   },
+   {
+    "step": 6,
+    "type": "free",
+    "id": "D",
+    "blocks": [
+     10,
+     11,
+     14
+    ],
+    "reason": "preempted"
+   },
+   {
+    "step": 6,
+    "type": "grow",
+    "id": "B",
+    "block": 10
+   },
+   {
+    "step": 6,
+    "type": "token",
+    "id": "A",
+    "n": 8,
+    "finished": false
+   },
+   {
+    "step": 6,
+    "type": "token",
+    "id": "B",
+    "n": 8,
+    "finished": false
+   },
+   {
+    "step": 6,
+    "type": "token",
+    "id": "C",
+    "n": 7,
+    "finished": false
+   },
+   {
+    "step": 7,
+    "type": "grow",
+    "id": "C",
+    "block": 11
+   },
+   {
+    "step": 7,
+    "type": "token",
+    "id": "A",
+    "n": 9,
+    "finished": false
+   },
+   {
+    "step": 7,
+    "type": "token",
+    "id": "B",
+    "n": 9,
+    "finished": false
+   },
+   {
+    "step": 7,
+    "type": "token",
+    "id": "C",
+    "n": 8,
+    "finished": false
+   },
+   {
+    "step": 8,
+    "type": "token",
+    "id": "A",
+    "n": 10,
+    "finished": false
+   },
+   {
+    "step": 8,
+    "type": "token",
+    "id": "B",
+    "n": 10,
+    "finished": false
+   },
+   {
+    "step": 8,
+    "type": "token",
+    "id": "C",
+    "n": 9,
+    "finished": false
+   },
+   {
+    "step": 9,
+    "type": "arrive",
+    "id": "G",
+    "prompt": 14,
+    "new_tokens": 22
+   },
+   {
+    "step": 9,
+    "type": "token",
+    "id": "A",
+    "n": 11,
+    "finished": false
+   },
+   {
+    "step": 9,
+    "type": "token",
+    "id": "B",
+    "n": 11,
+    "finished": false
+   },
+   {
+    "step": 9,
+    "type": "token",
+    "id": "C",
+    "n": 10,
+    "finished": false
+   },
+   {
+    "step": 10,
+    "type": "grow",
+    "id": "A",
+    "block": 14
+   },
+   {
+    "step": 10,
+    "type": "out_of_blocks",
+    "id": "B"
+   },
+   {
+    "step": 10,
+    "type": "preempt",
+    "id": "C",
+    "generated": 10,
+    "kv_tokens_discarded": 28,
+    "blocks": [
+     5,
+     6,
+     7,
+     8,
+     9,
+     15,
+     11
+    ]
+   },
+   {
+    "step": 10,
+    "type": "free",
+    "id": "C",
+    "blocks": [
+     5,
+     6,
+     7,
+     8,
+     9,
+     15,
+     11
+    ],
+    "reason": "preempted"
+   },
+   {
+    "step": 10,
+    "type": "grow",
+    "id": "B",
+    "block": 5
+   },
+   {
+    "step": 10,
+    "type": "token",
+    "id": "A",
+    "n": 12,
+    "finished": false
+   },
+   {
+    "step": 10,
+    "type": "token",
+    "id": "B",
+    "n": 12,
+    "finished": false
+   },
+   {
+    "step": 11,
+    "type": "token",
+    "id": "A",
+    "n": 13,
+    "finished": false
+   },
+   {
+    "step": 11,
+    "type": "token",
+    "id": "B",
+    "n": 13,
+    "finished": false
+   },
+   {
+    "step": 12,
+    "type": "arrive",
+    "id": "H",
+    "prompt": 7,
+    "new_tokens": 14
+   },
+   {
+    "step": 12,
+    "type": "token",
+    "id": "A",
+    "n": 14,
+    "finished": false
+   },
+   {
+    "step": 12,
+    "type": "token",
+    "id": "B",
+    "n": 14,
+    "finished": false
+   },
+   {
+    "step": 13,
+    "type": "token",
+    "id": "A",
+    "n": 15,
+    "finished": false
+   },
+   {
+    "step": 13,
+    "type": "token",
+    "id": "B",
+    "n": 15,
+    "finished": false
+   },
+   {
+    "step": 14,
+    "type": "grow",
+    "id": "A",
+    "block": 6
+   },
+   {
+    "step": 14,
+    "type": "grow",
+    "id": "B",
+    "block": 7
+   },
+   {
+    "step": 14,
+    "type": "token",
+    "id": "A",
+    "n": 16,
+    "finished": false
+   },
+   {
+    "step": 14,
+    "type": "token",
+    "id": "B",
+    "n": 16,
+    "finished": false
+   },
+   {
+    "step": 15,
+    "type": "token",
+    "id": "A",
+    "n": 17,
+    "finished": false
+   },
+   {
+    "step": 15,
+    "type": "token",
+    "id": "B",
+    "n": 17,
+    "finished": false
+   },
+   {
+    "step": 16,
+    "type": "token",
+    "id": "A",
+    "n": 18,
+    "finished": true
+   },
+   {
+    "step": 16,
+    "type": "token",
+    "id": "B",
+    "n": 18,
+    "finished": false
+   },
+   {
+    "step": 17,
+    "type": "free",
+    "id": "A",
+    "blocks": [
+     0,
+     1,
+     2,
+     12,
+     16,
+     14,
+     6
+    ],
+    "reason": "finished"
+   },
+   {
+    "step": 17,
+    "type": "allocate",
+    "id": "C",
+    "blocks": [
+     0,
+     1,
+     2,
+     12,
+     16,
+     14,
+     6
+    ],
+    "recompute": true
+   },
+   {
+    "step": 17,
+    "type": "prefill",
+    "id": "C",
+    "tokens": 28,
+    "recompute": true
+   },
+   {
+    "step": 17,
+    "type": "token",
+    "id": "C",
+    "n": 11,
+    "finished": false
+   },
+   {
+    "step": 17,
+    "type": "grow",
+    "id": "C",
+    "block": 8
+   },
+   {
+    "step": 17,
+    "type": "token",
+    "id": "B",
+    "n": 19,
+    "finished": false
+   },
+   {
+    "step": 17,
+    "type": "token",
+    "id": "C",
+    "n": 12,
+    "finished": false
+   },
+   {
+    "step": 18,
+    "type": "grow",
+    "id": "B",
+    "block": 9
+   },
+   {
+    "step": 18,
+    "type": "token",
+    "id": "B",
+    "n": 20,
+    "finished": false
+   },
+   {
+    "step": 18,
+    "type": "token",
+    "id": "C",
+    "n": 13,
+    "finished": false
+   },
+   {
+    "step": 19,
+    "type": "token",
+    "id": "B",
+    "n": 21,
+    "finished": false
+   },
+   {
+    "step": 19,
+    "type": "token",
+    "id": "C",
+    "n": 14,
+    "finished": true
+   },
+   {
+    "step": 20,
+    "type": "free",
+    "id": "C",
+    "blocks": [
+     0,
+     1,
+     2,
+     12,
+     16,
+     14,
+     6,
+     8
+    ],
+    "reason": "finished"
+   },
+   {
+    "step": 20,
+    "type": "allocate",
+    "id": "D",
+    "blocks": [
+     0,
+     1,
+     2,
+     12
+    ],
+    "recompute": true
+   },
+   {
+    "step": 20,
+    "type": "allocate",
+    "id": "E",
+    "blocks": [
+     16,
+     14,
+     6
+    ],
+    "recompute": false
+   },
+   {
+    "step": 20,
+    "type": "prefill",
+    "id": "D",
+    "tokens": 13,
+    "recompute": true
+   },
+   {
+    "step": 20,
+    "type": "token",
+    "id": "D",
+    "n": 6,
+    "finished": false
+   },
+   {
+    "step": 20,
+    "type": "prefill",
+    "id": "E",
+    "tokens": 12,
+    "recompute": false
+   },
+   {
+    "step": 20,
+    "type": "token",
+    "id": "E",
+    "n": 1,
+    "finished": false
+   },
+   {
+    "step": 20,
+    "type": "grow",
+    "id": "E",
+    "block": 8
+   },
+   {
+    "step": 20,
+    "type": "token",
+    "id": "B",
+    "n": 22,
+    "finished": false
+   },
+   {
+    "step": 20,
+    "type": "token",
+    "id": "D",
+    "n": 7,
+    "finished": false
+   },
+   {
+    "step": 20,
+    "type": "token",
+    "id": "E",
+    "n": 2,
+    "finished": false
+   },
+   {
+    "step": 21,
+    "type": "token",
+    "id": "B",
+    "n": 23,
+    "finished": false
+   },
+   {
+    "step": 21,
+    "type": "token",
+    "id": "D",
+    "n": 8,
+    "finished": false
+   },
+   {
+    "step": 21,
+    "type": "token",
+    "id": "E",
+    "n": 3,
+    "finished": false
+   },
+   {
+    "step": 22,
+    "type": "grow",
+    "id": "B",
+    "block": 15
+   },
+   {
+    "step": 22,
+    "type": "token",
+    "id": "B",
+    "n": 24,
+    "finished": true
+   },
+   {
+    "step": 22,
+    "type": "token",
+    "id": "D",
+    "n": 9,
+    "finished": false
+   },
+   {
+    "step": 22,
+    "type": "token",
+    "id": "E",
+    "n": 4,
+    "finished": false
+   },
+   {
+    "step": 23,
+    "type": "free",
+    "id": "B",
+    "blocks": [
+     3,
+     4,
+     13,
+     10,
+     5,
+     7,
+     9,
+     15
+    ],
+    "reason": "finished"
+   },
+   {
+    "step": 23,
+    "type": "allocate",
+    "id": "F",
+    "blocks": [
+     3,
+     4
+    ],
+    "recompute": false
+   },
+   {
+    "step": 23,
+    "type": "allocate",
+    "id": "G",
+    "blocks": [
+     13,
+     10,
+     5,
+     7
+    ],
+    "recompute": false
+   },
+   {
+    "step": 23,
+    "type": "prefill",
+    "id": "F",
+    "tokens": 5,
+    "recompute": false
+   },
+   {
+    "step": 23,
+    "type": "token",
+    "id": "F",
+    "n": 1,
+    "finished": false
+   },
+   {
+    "step": 23,
+    "type": "prefill",
+    "id": "G",
+    "tokens": 14,
+    "recompute": false
+   },
+   {
+    "step": 23,
+    "type": "token",
+    "id": "G",
+    "n": 1,
+    "finished": false
+   },
+   {
+    "step": 23,
+    "type": "grow",
+    "id": "D",
+    "block": 9
+   },
+   {
+    "step": 23,
+    "type": "token",
+    "id": "D",
+    "n": 10,
+    "finished": false
+   },
+   {
+    "step": 23,
+    "type": "token",
+    "id": "E",
+    "n": 5,
+    "finished": false
+   },
+   {
+    "step": 23,
+    "type": "token",
+    "id": "F",
+    "n": 2,
+    "finished": false
+   },
+   {
+    "step": 23,
+    "type": "token",
+    "id": "G",
+    "n": 2,
+    "finished": false
+   },
+   {
+    "step": 24,
+    "type": "grow",
+    "id": "E",
+    "block": 15
+   },
+   {
+    "step": 24,
+    "type": "token",
+    "id": "D",
+    "n": 11,
+    "finished": false
+   },
+   {
+    "step": 24,
+    "type": "token",
+    "id": "E",
+    "n": 6,
+    "finished": false
+   },
+   {
+    "step": 24,
+    "type": "token",
+    "id": "F",
+    "n": 3,
+    "finished": false
+   },
+   {
+    "step": 24,
+    "type": "token",
+    "id": "G",
+    "n": 3,
+    "finished": false
+   },
+   {
+    "step": 25,
+    "type": "grow",
+    "id": "G",
+    "block": 11
+   },
+   {
+    "step": 25,
+    "type": "token",
+    "id": "D",
+    "n": 12,
+    "finished": false
+   },
+   {
+    "step": 25,
+    "type": "token",
+    "id": "E",
+    "n": 7,
+    "finished": false
+   },
+   {
+    "step": 25,
+    "type": "token",
+    "id": "F",
+    "n": 4,
+    "finished": false
+   },
+   {
+    "step": 25,
+    "type": "token",
+    "id": "G",
+    "n": 4,
+    "finished": false
+   },
+   {
+    "step": 26,
+    "type": "out_of_blocks",
+    "id": "F"
+   },
+   {
+    "step": 26,
+    "type": "preempt",
+    "id": "G",
+    "generated": 4,
+    "kv_tokens_discarded": 18,
+    "blocks": [
+     13,
+     10,
+     5,
+     7,
+     11
+    ]
+   },
+   {
+    "step": 26,
+    "type": "free",
+    "id": "G",
+    "blocks": [
+     13,
+     10,
+     5,
+     7,
+     11
+    ],
+    "reason": "preempted"
+   },
+   {
+    "step": 26,
+    "type": "grow",
+    "id": "F",
+    "block": 13
+   },
+   {
+    "step": 26,
+    "type": "token",
+    "id": "D",
+    "n": 13,
+    "finished": false
+   },
+   {
+    "step": 26,
+    "type": "token",
+    "id": "E",
+    "n": 8,
+    "finished": false
+   },
+   {
+    "step": 26,
+    "type": "token",
+    "id": "F",
+    "n": 5,
+    "finished": false
+   },
+   {
+    "step": 27,
+    "type": "grow",
+    "id": "D",
+    "block": 10
+   },
+   {
+    "step": 27,
+    "type": "token",
+    "id": "D",
+    "n": 14,
+    "finished": false
+   },
+   {
+    "step": 27,
+    "type": "token",
+    "id": "E",
+    "n": 9,
+    "finished": false
+   },
+   {
+    "step": 27,
+    "type": "token",
+    "id": "F",
+    "n": 6,
+    "finished": false
+   },
+   {
+    "step": 28,
+    "type": "grow",
+    "id": "E",
+    "block": 5
+   },
+   {
+    "step": 28,
+    "type": "token",
+    "id": "D",
+    "n": 15,
+    "finished": false
+   },
+   {
+    "step": 28,
+    "type": "token",
+    "id": "E",
+    "n": 10,
+    "finished": false
+   },
+   {
+    "step": 28,
+    "type": "token",
+    "id": "F",
+    "n": 7,
+    "finished": false
+   },
+   {
+    "step": 29,
+    "type": "token",
+    "id": "D",
+    "n": 16,
+    "finished": false
+   },
+   {
+    "step": 29,
+    "type": "token",
+    "id": "E",
+    "n": 11,
+    "finished": false
+   },
+   {
+    "step": 29,
+    "type": "token",
+    "id": "F",
+    "n": 8,
+    "finished": false
+   },
+   {
+    "step": 30,
+    "type": "grow",
+    "id": "F",
+    "block": 7
+   },
+   {
+    "step": 30,
+    "type": "token",
+    "id": "D",
+    "n": 17,
+    "finished": false
+   },
+   {
+    "step": 30,
+    "type": "token",
+    "id": "E",
+    "n": 12,
+    "finished": false
+   },
+   {
+    "step": 30,
+    "type": "token",
+    "id": "F",
+    "n": 9,
+    "finished": false
+   },
+   {
+    "step": 31,
+    "type": "grow",
+    "id": "D",
+    "block": 11
+   },
+   {
+    "step": 31,
+    "type": "token",
+    "id": "D",
+    "n": 18,
+    "finished": false
+   },
+   {
+    "step": 31,
+    "type": "token",
+    "id": "E",
+    "n": 13,
+    "finished": false
+   },
+   {
+    "step": 31,
+    "type": "token",
+    "id": "F",
+    "n": 10,
+    "finished": false
+   },
+   {
+    "step": 32,
+    "type": "out_of_blocks",
+    "id": "E"
+   },
+   {
+    "step": 32,
+    "type": "preempt",
+    "id": "F",
+    "generated": 10,
+    "kv_tokens_discarded": 15,
+    "blocks": [
+     3,
+     4,
+     13,
+     7
+    ]
+   },
+   {
+    "step": 32,
+    "type": "free",
+    "id": "F",
+    "blocks": [
+     3,
+     4,
+     13,
+     7
+    ],
+    "reason": "preempted"
+   },
+   {
+    "step": 32,
+    "type": "grow",
+    "id": "E",
+    "block": 3
+   },
+   {
+    "step": 32,
+    "type": "token",
+    "id": "D",
+    "n": 19,
+    "finished": false
+   },
+   {
+    "step": 32,
+    "type": "token",
+    "id": "E",
+    "n": 14,
+    "finished": false
+   },
+   {
+    "step": 33,
+    "type": "token",
+    "id": "D",
+    "n": 20,
+    "finished": false
+   },
+   {
+    "step": 33,
+    "type": "token",
+    "id": "E",
+    "n": 15,
+    "finished": false
+   },
+   {
+    "step": 34,
+    "type": "token",
+    "id": "D",
+    "n": 21,
+    "finished": false
+   },
+   {
+    "step": 34,
+    "type": "token",
+    "id": "E",
+    "n": 16,
+    "finished": false
+   },
+   {
+    "step": 35,
+    "type": "grow",
+    "id": "D",
+    "block": 4
+   },
+   {
+    "step": 35,
+    "type": "token",
+    "id": "D",
+    "n": 22,
+    "finished": false
+   },
+   {
+    "step": 35,
+    "type": "token",
+    "id": "E",
+    "n": 17,
+    "finished": false
+   },
+   {
+    "step": 36,
+    "type": "grow",
+    "id": "E",
+    "block": 13
+   },
+   {
+    "step": 36,
+    "type": "token",
+    "id": "D",
+    "n": 23,
+    "finished": false
+   },
+   {
+    "step": 36,
+    "type": "token",
+    "id": "E",
+    "n": 18,
+    "finished": false
+   },
+   {
+    "step": 37,
+    "type": "token",
+    "id": "D",
+    "n": 24,
+    "finished": false
+   },
+   {
+    "step": 37,
+    "type": "token",
+    "id": "E",
+    "n": 19,
+    "finished": false
+   },
+   {
+    "step": 38,
+    "type": "token",
+    "id": "D",
+    "n": 25,
+    "finished": false
+   },
+   {
+    "step": 38,
+    "type": "token",
+    "id": "E",
+    "n": 20,
+    "finished": true
+   },
+   {
+    "step": 39,
+    "type": "free",
+    "id": "E",
+    "blocks": [
+     16,
+     14,
+     6,
+     8,
+     15,
+     5,
+     3,
+     13
+    ],
+    "reason": "finished"
+   },
+   {
+    "step": 39,
+    "type": "allocate",
+    "id": "F",
+    "blocks": [
+     16,
+     14,
+     6,
+     8
+    ],
+    "recompute": true
+   },
+   {
+    "step": 39,
+    "type": "prefill",
+    "id": "F",
+    "tokens": 15,
+    "recompute": true
+   },
+   {
+    "step": 39,
+    "type": "token",
+    "id": "F",
+    "n": 11,
+    "finished": false
+   },
+   {
+    "step": 39,
+    "type": "grow",
+    "id": "D",
+    "block": 15
+   },
+   {
+    "step": 39,
+    "type": "token",
+    "id": "D",
+    "n": 26,
+    "finished": false
+   },
+   {
+    "step": 39,
+    "type": "token",
+    "id": "F",
+    "n": 12,
+    "finished": false
+   },
+   {
+    "step": 40,
+    "type": "grow",
+    "id": "F",
+    "block": 5
+   },
+   {
+    "step": 40,
+    "type": "token",
+    "id": "D",
+    "n": 27,
+    "finished": false
+   },
+   {
+    "step": 40,
+    "type": "token",
+    "id": "F",
+    "n": 13,
+    "finished": false
+   },
+   {
+    "step": 41,
+    "type": "token",
+    "id": "D",
+    "n": 28,
+    "finished": true
+   },
+   {
+    "step": 41,
+    "type": "token",
+    "id": "F",
+    "n": 14,
+    "finished": false
+   },
+   {
+    "step": 42,
+    "type": "free",
+    "id": "D",
+    "blocks": [
+     0,
+     1,
+     2,
+     12,
+     9,
+     10,
+     11,
+     4,
+     15
+    ],
+    "reason": "finished"
+   },
+   {
+    "step": 42,
+    "type": "allocate",
+    "id": "G",
+    "blocks": [
+     0,
+     1,
+     2,
+     12,
+     9
+    ],
+    "recompute": true
+   },
+   {
+    "step": 42,
+    "type": "allocate",
+    "id": "H",
+    "blocks": [
+     10,
+     11
+    ],
+    "recompute": false
+   },
+   {
+    "step": 42,
+    "type": "prefill",
+    "id": "G",
+    "tokens": 18,
+    "recompute": true
+   },
+   {
+    "step": 42,
+    "type": "token",
+    "id": "G",
+    "n": 5,
+    "finished": false
+   },
+   {
+    "step": 42,
+    "type": "prefill",
+    "id": "H",
+    "tokens": 7,
+    "recompute": false
+   },
+   {
+    "step": 42,
+    "type": "token",
+    "id": "H",
+    "n": 1,
+    "finished": false
+   },
+   {
+    "step": 42,
+    "type": "token",
+    "id": "F",
+    "n": 15,
+    "finished": false
+   },
+   {
+    "step": 42,
+    "type": "token",
+    "id": "G",
+    "n": 6,
+    "finished": false
+   },
+   {
+    "step": 42,
+    "type": "token",
+    "id": "H",
+    "n": 2,
+    "finished": false
+   },
+   {
+    "step": 43,
+    "type": "grow",
+    "id": "H",
+    "block": 4
+   },
+   {
+    "step": 43,
+    "type": "token",
+    "id": "F",
+    "n": 16,
+    "finished": true
+   },
+   {
+    "step": 43,
+    "type": "token",
+    "id": "G",
+    "n": 7,
+    "finished": false
+   },
+   {
+    "step": 43,
+    "type": "token",
+    "id": "H",
+    "n": 3,
+    "finished": false
+   },
+   {
+    "step": 44,
+    "type": "free",
+    "id": "F",
+    "blocks": [
+     16,
+     14,
+     6,
+     8,
+     5
+    ],
+    "reason": "finished"
+   },
+   {
+    "step": 44,
+    "type": "grow",
+    "id": "G",
+    "block": 16
+   },
+   {
+    "step": 44,
+    "type": "token",
+    "id": "G",
+    "n": 8,
+    "finished": false
+   },
+   {
+    "step": 44,
+    "type": "token",
+    "id": "H",
+    "n": 4,
+    "finished": false
+   },
+   {
+    "step": 45,
+    "type": "token",
+    "id": "G",
+    "n": 9,
+    "finished": false
+   },
+   {
+    "step": 45,
+    "type": "token",
+    "id": "H",
+    "n": 5,
+    "finished": false
+   },
+   {
+    "step": 46,
+    "type": "token",
+    "id": "G",
+    "n": 10,
+    "finished": false
+   },
+   {
+    "step": 46,
+    "type": "token",
+    "id": "H",
+    "n": 6,
+    "finished": false
+   },
+   {
+    "step": 47,
+    "type": "grow",
+    "id": "H",
+    "block": 14
+   },
+   {
+    "step": 47,
+    "type": "token",
+    "id": "G",
+    "n": 11,
+    "finished": false
+   },
+   {
+    "step": 47,
+    "type": "token",
+    "id": "H",
+    "n": 7,
+    "finished": false
+   },
+   {
+    "step": 48,
+    "type": "grow",
+    "id": "G",
+    "block": 6
+   },
+   {
+    "step": 48,
+    "type": "token",
+    "id": "G",
+    "n": 12,
+    "finished": false
+   },
+   {
+    "step": 48,
+    "type": "token",
+    "id": "H",
+    "n": 8,
+    "finished": false
+   },
+   {
+    "step": 49,
+    "type": "token",
+    "id": "G",
+    "n": 13,
+    "finished": false
+   },
+   {
+    "step": 49,
+    "type": "token",
+    "id": "H",
+    "n": 9,
+    "finished": false
+   },
+   {
+    "step": 50,
+    "type": "token",
+    "id": "G",
+    "n": 14,
+    "finished": false
+   },
+   {
+    "step": 50,
+    "type": "token",
+    "id": "H",
+    "n": 10,
+    "finished": false
+   },
+   {
+    "step": 51,
+    "type": "grow",
+    "id": "H",
+    "block": 8
+   },
+   {
+    "step": 51,
+    "type": "token",
+    "id": "G",
+    "n": 15,
+    "finished": false
+   },
+   {
+    "step": 51,
+    "type": "token",
+    "id": "H",
+    "n": 11,
+    "finished": false
+   },
+   {
+    "step": 52,
+    "type": "grow",
+    "id": "G",
+    "block": 5
+   },
+   {
+    "step": 52,
+    "type": "token",
+    "id": "G",
+    "n": 16,
+    "finished": false
+   },
+   {
+    "step": 52,
+    "type": "token",
+    "id": "H",
+    "n": 12,
+    "finished": false
+   },
+   {
+    "step": 53,
+    "type": "token",
+    "id": "G",
+    "n": 17,
+    "finished": false
+   },
+   {
+    "step": 53,
+    "type": "token",
+    "id": "H",
+    "n": 13,
+    "finished": false
+   },
+   {
+    "step": 54,
+    "type": "token",
+    "id": "G",
+    "n": 18,
+    "finished": false
+   },
+   {
+    "step": 54,
+    "type": "token",
+    "id": "H",
+    "n": 14,
+    "finished": true
+   },
+   {
+    "step": 55,
+    "type": "free",
+    "id": "H",
+    "blocks": [
+     10,
+     11,
+     4,
+     14,
+     8
+    ],
+    "reason": "finished"
+   },
+   {
+    "step": 55,
+    "type": "token",
+    "id": "G",
+    "n": 19,
+    "finished": false
+   },
+   {
+    "step": 56,
+    "type": "grow",
+    "id": "G",
+    "block": 10
+   },
+   {
+    "step": 56,
+    "type": "token",
+    "id": "G",
+    "n": 20,
+    "finished": false
+   },
+   {
+    "step": 57,
+    "type": "token",
+    "id": "G",
+    "n": 21,
+    "finished": false
+   },
+   {
+    "step": 58,
+    "type": "token",
+    "id": "G",
+    "n": 22,
+    "finished": true
+   },
+   {
+    "step": 59,
+    "type": "free",
+    "id": "G",
+    "blocks": [
+     0,
+     1,
+     2,
+     12,
+     9,
+     16,
+     6,
+     5,
+     10
+    ],
+    "reason": "finished"
+   }
+  ],
+  "totals": {
+   "steps": 60,
+   "preemptions": 4,
+   "tokens_generated": 156,
+   "outputs_identical_to_single_request_greedy": true,
+   "blocks_leaked": 0
+  },
+  "provenance": {
+   "engine/scheduler.py": "77c6f70c440a74afc1ea39f142fddf067bd80e55e4cdea605d6703b86c388ecd",
+   "engine/block_manager.py": "a317517f9e9772ba02f7e9b78e94e3a64f47a618147ebbddd556c18fbaece3df",
+   "engine/cache.py": "05689aae24509ffd3b238759ffbecc777cc1699529188ca7cd9df6d9a040ae42"
+  }
+ }
 }
