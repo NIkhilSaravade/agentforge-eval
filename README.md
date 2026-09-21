@@ -83,11 +83,12 @@ The project began as: run [ts-bench](bench/) (a SWE-bench-style benchmark of rea
 self-hosted model, use the dollars saved by cheap concurrent generation to run enough trials for a statistically meaningful pass@k, and spend
 real API budget only on one frontier anchor.
 
-That failed before it started, and the evidence was already in the repo. ts-bench's own earlier runs scored local open-weight models 10x
-larger than anything this CPU can serve at **0 resolved out of 647 attempts** (qwen2.5-coder:14b 0/240, codestral about 0/240, qwen3:14b 0/167),
-while Claude Haiku 4.5 resolved 6 of 20. A 0.5-1.5B model failing on that task class is a certainty, not a finding, and more trials of a model
-that cannot solve anything only produce more zeros. So the plan changed twice, each time with the user's approval and each time recorded on
-[the task board](docs/agentforge-task-board.md):
+That failed before it started, and the evidence was already in the repo. ts-bench's own earlier runs scored local open-weight models roughly
+10x larger or more than anything this CPU can serve at **0 resolved out of 647 attempts** (qwen2.5-coder:14b 0/240, codestral 0/240,
+qwen3:14b 0/167), while Claude Haiku 4.5 resolved 6 of 20. A 0.5-1.5B model failing on that task class was therefore the way to bet, and more
+trials of a model that solves nothing only produce more zeros. The claim is deliberately narrow: those runs used one plain bash-loop scaffold on a
+24-instance set, and show nothing about how the models would do under a different scaffold. So the plan changed twice, each time with the user's
+approval and each time recorded on [the task board](docs/agentforge-task-board.md):
 
 1. First reframe: stop measuring solve rate and measure the engine's throughput under agent-shaped traffic.
 2. Then a better pivot: evaluate the model on a task class it is actually built for (HumanEval, function-level Python), with real seeded

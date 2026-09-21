@@ -652,3 +652,35 @@ main 60.9 s, loaded-on-main-run-on-thread 88.1 s (45% slower), loaded-and-run-on
 All seven phases done. Total hosted spend $6.064139 (cap $6.50). Engine suite 354 passed (last full run, before Phase 6; no engine code changed since except two new measurement scripts). Bench suite 79 passed.
 Known open items (not done, listed so they are not lost): re-run truncated hosted samples at a larger token cap (~$0.6, over the cap); Opus 5 with default thinking at scale; n=10 for Opus 5; an hourly rate for the self-hosted machine to turn the break-even into a dollar figure;
 prefix caching and a padding-free attention path in the engine (the 0.96 s/step real-workload decode vs 0.38 s uniform benchmark is unexplained); Qwen2.5-Coder-3B; the SWE-bench-style tasks with a stronger model.
+
+---
+
+# Website track (W1-W5): the results site (`web/`)
+
+A portfolio site built from the real results: React + TypeScript + Vite, standalone (own `package.json`, no imports from `engine/` or `bench/`; it reads their result files through a generated `data.json`).
+Rules inherited from the project: every number traces to a file; the negative result has the same visual weight as anything else; nothing is tuned to look better than it is. Work one phase at a time; commit and push after each.
+
+| Phase | What | Status |
+|---|---|---|
+| W1 | Scaffold, data pipeline (`web/scripts/build-data.mjs` -> `web/src/data.json`), data tests | NOT STARTED |
+| W2 | Real scheduler trace recorded from the actual engine + the animated engine diagram | NOT STARTED |
+| W3 | Opening, pivot story, eval-architecture trace (a real request's path) | NOT STARTED |
+| W4 | Results: table, CI chart, per-problem strips, break-even chart, caveats at equal weight | NOT STARTED |
+| W5 | Close, polish, "AI tell" lint, number-provenance lint, screenshots reviewed, mobile check | NOT STARTED |
+
+## Decisions made up front (recorded so they are not silent)
+- **Location:** `web/` at the repo root (standalone project inside the monorepo, so the data script can read the result files). The site name/path is easy to move.
+- **Visual language (held throughout):** editorial paper `#f2eee4`, ink `#161410`, hairline rules, ONE loud accent. Type: Newsreader (display + text, self-hosted via fontsource) with IBM Plex Mono for every number, label and code. No gradients, no
+  glass, no shadows, no rounded cards, no emoji, no icon grid, no particle backgrounds. Layout is asymmetric editorial: a sticky section index in the left rail, a narrow text column, and figures that break out wide.
+- **Series colors (validated, not eyeballed):** `#C4411D` vermilion = self-hosted (the arm that loses gets the loudest color, on purpose), `#2B58A6` cobalt = Claude Haiku 4.5, `#A56E00` ochre = Claude Opus 5. Ran
+  `validate_palette.js --mode light --surface "#f2eee4"`: ALL CHECKS PASS (lightness band, chroma floor >= 0.10, worst adjacent CVD dE 21.3 protan / 22.0 tritan, normal-vision floor worst 28.0, contrast >= 3:1). Near-black ink was rejected as a
+  series color: it fails the chroma floor. The greedy self-hosted arm reuses the vermilion hue with a hollow marker (same entity, different decoding), never a fourth hue.
+- **Diagrams show real state, not decoration.** The engine diagram animates a trace recorded from the actual scheduler (`engine/scripts/record_scheduler_trace.py`: real requests, real paged block tables, a real preemption), scrubbed by scroll.
+  The eval diagram follows one real sample's real timings from the results files.
+- **Data integrity:** `build-data.mjs` reads the result JSON/JSONL and parses the prose-only facts (0/647, 6 of 20, test counts) out of the docs with regexes that FAIL THE BUILD if the text no longer matches. A lint forbids digits in JSX text, so no number can be typed into a component.
+- **Contact details:** the site can name the repo (public GitHub URL from the git remote). Whether to publish an email or any other contact is the user's call; it is a config field that stays empty until supplied.
+- **Out of scope unless asked:** deployment/hosting, analytics, a CMS.
+
+## Correction found while planning (fixed in `README.md`)
+The README said codestral scored "about 0/240". The source doc (`bench/docs/step7-real-model-run.md`) says codestral completed 240/240 with 0 resolved (240 + 240 + 167 = 647), and states the claim is narrow: one plain bash-loop scaffold, a 24-instance set,
+no evidence about other scaffolds. README corrected; the site uses the doc's wording.
