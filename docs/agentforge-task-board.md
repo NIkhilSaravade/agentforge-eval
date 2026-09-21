@@ -665,7 +665,7 @@ Rules inherited from the project: every number traces to a file; the negative re
 | W1 | Scaffold, data pipeline (`web/scripts/build-data.mjs` -> `web/src/data.json`), data tests | DONE (2026-09-22) |
 | W2 | Real scheduler trace recorded from the actual engine + the animated engine diagram | DONE (2026-09-22) |
 | W3 | Opening, pivot story, eval-architecture trace (a real request's path) | DONE (2026-09-22) |
-| W4 | Results: table, CI chart, per-problem strips, break-even chart, caveats at equal weight | NOT STARTED |
+| W4 | Results: table, CI chart, per-problem strips, break-even chart, caveats at equal weight | DONE (2026-09-22) |
 | W5 | Close, polish, "AI tell" lint, number-provenance lint, screenshots reviewed, mobile check | NOT STARTED |
 
 ## Decisions made up front (recorded so they are not silent)
@@ -764,3 +764,34 @@ $ vite build   -> built
 $ shots.mjs    -> no page errors (desktop + mobile)
 ```
 Screenshots reviewed: pivot (attempts grid, quote, reasoning), all seven trace stages for the passing sample, the Score stage for both samples.
+
+## W4 — The results section (DONE 2026-09-22)
+
+### Built (`web/src/sections/Results.tsx`, `components/ResultsCharts.tsx`, `lib/palette.ts`)
+- The results table: all four arms with pass@1, pass@3, pass@10 and their 95% intervals, samples, cost, wall-clock. The self-hosted rows say "no $ figure, no hourly rate supplied" rather than a made-up number.
+- An interval chart (pass@1 and pass@3, full 0 to 100% axes, so the gap is not exaggerated by a truncated axis): thin marks, direct value labels, a legend, hover states, and the table beside it as the accessible view.
+- Per-problem strips: one cell per problem for each arm, shaded by how many of that problem's samples passed. This is where the negative result is most visible: the self-hosted rows are patchy, Haiku 4.5 and Opus 5 nearly solid. Counts (never / sometimes / every time) are derived from `data.strips`.
+- A break-even chart with a slider: cost of self-hosting = measured wall-clock hours x an hourly rate the reader chooses, against Haiku 4.5's and Opus 5's measured costs; toggle between "every sample" and "solved samples"; circles mark the two break-evens. No hourly rate is assumed anywhere.
+- The caveats block, at the same heading size, rule weight and body type as the results (not small print): the seven caveats from the results file written as readable prose with every number interpolated from data, beside a truncation table (cut-off counts, pass rate, and the most the cap could be costing each arm: up to 0.9, 4.3 and 2.4 points) and a short "where self-hosting still helps".
+  The page THROWS at render if the results file gains or loses a caveat, so none can be silently dropped or softened.
+- Colors were validated, not eyeballed: the series palette (all checks pass) and, after a first attempt failed, a 3-step ramp per hue for the strips. The five-equal-step opacity ramp FAILED (light end 1.4 to 1.6:1, under the 2:1 floor; dark steps too close), so the strips use three steps plus a hollow class for "never".
+- `build-data.mjs` gained `overlap` facts computed from the per-problem counts; 2 new tests (16 total): overlap facts agree with the counts; the caveat count is pinned.
+
+### A wrong claim caught before shipping
+I had written under the strips: "the problems the self-hosted model misses are, for the most part, not the ones the hosted models miss." I had not checked it. Checked against the data: of the 20 problems the self-hosted model never solved, Opus 5 solved all 20 every time, Haiku 4.5 solved 10 every time (and never solved 3). The
+5 problems Opus 5 missed were each solved at least once by the self-hosted model, and 4 of those 5 have an Opus 5 reply cut off by the shared 512-token cap. The unverified sentence was deleted and replaced with these computed facts, including the one point in the small model's favor and why it is mostly an artifact of the cap.
+
+### Other problems found by reading the page
+- The PASS@3 panel was clipped (value labels cut off at the right edge); the plot area now leaves room.
+- The break-even chart's y ticks rounded 3.75 to $4 and 11.25 to $11 (misleading); ticks now use round steps ($0, $5, $10, ...). The break-even label was crossed by a line; moved.
+- The caveats first rendered the raw strings from the results file, which contain code identifiers (`truncation_upper_bound_sample_pass_rate`); rewritten as prose. One sentence said "Opus 5 and Sonnet 5 reject temperature/top_p": Sonnet 5 was never run here and the claim comes from Anthropic's API reference, so it now says that.
+- Section headings (h3) were barely larger than body text; enlarged.
+
+### Check (actual output)
+```
+$ tsc -b       -> clean
+$ vitest run   -> 16 passed
+$ vite build   -> built
+$ shots.mjs    -> no page errors
+```
+Screenshots reviewed: the table, interval chart, all four strips, break-even chart at its default, caveats and truncation table.

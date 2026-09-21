@@ -101,6 +101,20 @@ describe("internal consistency", () => {
     expect(data.facts.tsBench.totalResolved).toBe(0);
     expect(data.facts.tsBench.models.reduce((s, m) => s + m.attempts, 0)).toBe(data.facts.tsBench.totalAttempts);
   });
+  it("the overlap facts shown on the page agree with the per-problem counts", () => {
+    const st = data.strips as Record<string, { task_id: string; n: number; c: number }[]>;
+    const never = (id: string) => new Set((st[id] ?? []).filter((e) => e.c === 0).map((e) => e.task_id));
+    const always = (id: string) => new Set((st[id] ?? []).filter((e) => e.c === e.n).map((e) => e.task_id));
+    const selfNever = never("self");
+    expect(data.overlap.selfNever).toBe(selfNever.size);
+    expect(data.overlap.selfNeverSolvedEveryTimeByOpus).toBe([...selfNever].filter((t) => always("opus").has(t)).length);
+    expect(data.overlap.selfNeverSolvedEveryTimeByHaiku).toBe([...selfNever].filter((t) => always("haiku").has(t)).length);
+    expect(data.overlap.selfNeverAlsoNeverHaiku).toBe([...selfNever].filter((t) => never("haiku").has(t)).length);
+    expect(data.overlap.opusMissedWithTruncatedReply).toBeLessThanOrEqual(data.overlap.opusMissed);
+  });
+  it("the results file lists the caveats the page writes out (the page throws if the count drifts)", () => {
+    expect(data.caveats).toHaveLength(7);
+  });
   it("hosted spend is under the cap, which is under the funded amount", () => {
     expect(data.spend.totalUsd).toBeLessThan(data.spend.capUsd);
     expect(data.spend.capUsd).toBeLessThan(data.spend.fundedUsd);

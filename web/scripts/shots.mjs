@@ -90,6 +90,19 @@ try {
         }
       }
     }
+    if (name === "desktop") {
+      const rt = await page.evaluate(() => {
+        const el = document.getElementById("results");
+        return el ? el.getBoundingClientRect().top + window.scrollY : null;
+      });
+      if (rt !== null) {
+        for (let i = 0; i < 9; i++) {
+          await page.evaluate((y) => window.scrollTo(0, y), rt - 20 + i * 780);
+          await wait(600);
+          await page.screenshot({ path: `${OUT}/results-${i}.png` });
+        }
+      }
+    }
     await page.close();
   }
   console.log(errors.length ? `PAGE ERRORS:\n${errors.join("\n")}` : "no page errors");

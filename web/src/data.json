@@ -4202,6 +4202,15 @@
    }
   ]
  },
+ "overlap": {
+  "selfNever": 20,
+  "selfNeverAlsoNeverHaiku": 3,
+  "selfNeverSolvedEveryTimeByHaiku": 10,
+  "selfNeverSolvedEveryTimeByOpus": 20,
+  "opusMissed": 5,
+  "opusMissedSelfSolvedAtLeastOnce": 5,
+  "opusMissedWithTruncatedReply": 4
+ },
  "costModel": {
   "selfHostedHoursFor1640": 2.597722222222222,
   "samplesCompared": 1640,

@@ -64,6 +64,7 @@ const passAtK = (n, c, k) => {
 
 const arms = [];
 const strips = {};
+const truncatedTasks = {};
 for (const A of ARMS) {
   const a = cmp.arms[A.key];
   const rows = jsonl(`${R}/${A.dir}/results.jsonl`);
@@ -89,6 +90,7 @@ for (const A of ARMS) {
     must(Math.abs(mine - rep.value) < 1e-9, `${A.id}: recomputed pass@${k} ${mine} != reported ${rep.value}`);
   }
   strips[A.id] = strip;
+  truncatedTasks[A.id] = new Set(rows.filter((r) => r.finish_reason === "length").map((r) => r.task_id));
   arms.push({
     id: A.id, label: A.label, short: A.short, kind: A.kind, decoding: A.decoding, marker: A.marker,
     nSamples: a.n_samples, samplesPerProblem: a.samples_per_problem, passedSamples: a.passed_samples,
@@ -100,6 +102,21 @@ for (const A of ARMS) {
     selfHosted: a.self_hosted ? { wallSeconds: a.self_hosted.wall_seconds, wallHours: a.self_hosted.wall_hours, tokensPerSecond: a.self_hosted.completion_tokens_per_second } : null,
   });
 }
+// how the arms' misses relate, computed from the per-problem counts
+const setOf = (id, pred) => new Set(strips[id].filter(pred).map((e) => e.task_id));
+const neverSet = (id) => setOf(id, (e) => e.c === 0);
+const alwaysSet = (id) => setOf(id, (e) => e.c === e.n);
+const inter = (a, b) => [...a].filter((x) => b.has(x));
+const opusMissed = setOf("opus", (e) => e.c < e.n);
+const overlap = {
+  selfNever: neverSet("self").size,
+  selfNeverAlsoNeverHaiku: inter(neverSet("self"), neverSet("haiku")).length,
+  selfNeverSolvedEveryTimeByHaiku: inter(neverSet("self"), alwaysSet("haiku")).length,
+  selfNeverSolvedEveryTimeByOpus: inter(neverSet("self"), alwaysSet("opus")).length,
+  opusMissed: opusMissed.size,
+  opusMissedSelfSolvedAtLeastOnce: [...opusMissed].filter((t) => strips.self.find((e) => e.task_id === t).c > 0).length,
+  opusMissedWithTruncatedReply: [...opusMissed].filter((t) => truncatedTasks.opus.has(t)).length,
+};
 const hostedWall = (dir) => jsonl(`${R}/${dir}/completions.jsonl`).length; // provenance touch; wall time comes from run.json below
 void hostedWall;
 const wall = (dir) => json(`${R}/${dir}/run.json`).segments.reduce((s, x) => s + x.wall_seconds, 0);
@@ -258,7 +275,7 @@ const repoUrl = execFileSync("git", ["-C", ROOT, "remote", "get-url", "origin"],
 const data = {
   meta: { generator: "web/scripts/build-data.mjs", repoUrl, dataset: cmp.arms.self_hosted_sampled.dataset_sha256, promptTemplateSha256: cmp.arms.self_hosted_sampled.prompt_template_sha256, sources },
   task: { problems: 164, harnessGate: { goldPassed: gate.gold_passed, emptyPassed: gate.empty_passed, problems: gate.n_problems, seconds: gate.seconds } },
-  arms, strips, costModel, spend, engine, engineRequestStats: selfEngine, facts, example, sandbox, bootstrap,
+  arms, strips, overlap, costModel, spend, engine, engineRequestStats: selfEngine, facts, example, sandbox, bootstrap,
   caveats: cmp.caveats,
   trace,
 };

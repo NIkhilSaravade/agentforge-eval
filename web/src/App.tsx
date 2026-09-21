@@ -3,6 +3,7 @@ import { Engine } from "./sections/Engine";
 import { Harness } from "./sections/Harness";
 import { Opening } from "./sections/Opening";
 import { Pivot } from "./sections/Pivot";
+import { Results } from "./sections/Results";
 
 export default function App() {
   return (
@@ -14,6 +15,7 @@ export default function App() {
           <Engine />
           <Pivot />
           <Harness />
+          <Results />
         </div>
       </main>
     </div>
