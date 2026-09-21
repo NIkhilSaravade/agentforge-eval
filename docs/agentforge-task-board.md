@@ -10,7 +10,7 @@ swap needs confirmation); negative results are published with root cause.
 |---|---|---|
 | 1 | OpenAI-compatible `/v1/chat/completions` on the engine | DONE (2026-09-21) |
 | 2 | Model capability decision (STOP, needs confirmation) | DONE (confirmed 2026-09-21) |
-| 3 | Golden test for the new model (Qwen2.5-Coder-0.5B) | IN PROGRESS |
+| 3 | Golden test for the new model (Qwen2.5-Coder-0.5B) | DONE (2026-09-21) |
 | 4 | Real sampling (temperature + top-p, seedable) in the engine | NOT STARTED (new) |
 | 5 | HumanEval harness: generate k, test, pass@k against the self-hosted model | NOT STARTED (replaces old Phase 4) |
 | 6 | Budget experiment: same 164 problems, same k, frontier anchor (needs explicit spend approval) | NOT STARTED (replaces old Phase 5) |
@@ -232,3 +232,56 @@ must add a regression test proving that.
   also note HumanEval is a public benchmark with known training-data contamination risk for code models, which
   the write-up should state.
 - **Executing model-generated code** in Phase 5 needs a sandbox/timeout (bench's Python adapter/sandbox will be reused; verify its isolation).
+
+---
+
+## Phase 3 — Golden test for Qwen2.5-Coder-0.5B-Instruct (DONE 2026-09-21)
+
+Done-when: a golden test for the new model passes, same rigor as the GPT-2 golden test.
+
+### Built
+- `engine/engine/spec.py`: `ModelSpec` (layers, q/kv heads, head_dim, max_context, EOS ids, `bytes_per_token`)
+  and `GPT2_SPEC`, which reproduces the old module constants exactly.
+- Parameterized on the spec instead of hard-coded GPT-2 dims / 1024 context: `cache.py` (`ContiguousKVCache`,
+  `SlotPool`, `PagedPool`, `BatchAccess`), `block_manager.py` (`slots_for_budget`, `blocks_for_budget`),
+  `scheduler.py` (max context, multi-EOS, pool sizing), `api.py` (context limit), `config.py` (`model`,
+  `max_context`), `observability.py` (model name), `model_runner.py` (`spec`, `load_runner()`).
+- `engine/engine/qwen_runner.py`: `Qwen2Runner`. Hand-written RMSNorm, RoPE, GQA (2 KV heads), SwiGLU, QKV bias,
+  tied embeddings. Weights come straight from safetensors (bf16 upcast to fp32, same values as HF
+  `dtype=float32`), no HF model object kept, transformers used for the tokenizer only. Ops mirror HF's order and
+  kernels (fp32 RMSNorm, `F.linear`, RoPE from `inv_freq @ positions`, `enable_gqa` when unmasked, `repeat_kv`
+  when masked).
+- `engine/scripts/make_fixtures_qwen.py` (HF `generate()` allowed here only) and
+  `engine/tests/fixtures/qwen2.5-coder-0.5b/`: the 8 GPT-2 cases re-derived with the Qwen tokenizer, plus
+  `long_2000_out20` (RoPE/prefill at ~2K positions) and `agent_prompt_out64` (a real bench system prompt through the
+  chat template; ends on EOS after 11 tokens, so the stop path is covered). Each fixture records snapshot hash,
+  dtype, transformers/torch versions and the greedy settings.
+- `engine/tests/test_golden_qwen.py`: 76 tests: cached single-sequence, static, continuous, batch independence,
+  join/leave mid-generation, paged (block sizes 4 and 16, single, batch, join/leave), forced preemption-and-recompute
+  with no leaked blocks, EOS stop, GQA spec check.
+
+### Problems hit / things worth knowing
+- The checkpoint's `generation_config.json` has `do_sample=True`, `repetition_penalty=1.05`, temperature 0.7, top_p 0.8,
+  top_k 20. `generate(do_sample=False)` alone would still apply the repetition penalty, so "greedy" would not be
+  greedy. The fixture script overrides all of it and the test asserts it (`do_sample False`, penalty 1.0, fp32).
+- Two EOS ids (151645 `<|im_end|>`, 151643 `<|endoftext|>`); the engine now checks `tok in spec.eos_ids`.
+- The `naive` (M0) backend is GPT-2-only: it is defined as HF-forward-recompute, so there is nothing to compare for
+  Qwen. `Qwen2Runner.run` raises `NotImplementedError`.
+- Served context for Qwen defaults to 8192 (`DEFAULT_MAX_CONTEXT`), not the model's 32768; contiguous slots reserve
+  the full context each. Overridable via `EngineConfig.max_context`.
+- The numerics matched HF on the first run, including the masked/batched/paged paths. No tolerance is used.
+
+### Done-when check (actual output)
+```
+$ pytest tests/test_golden_qwen.py -q
+76 passed in 315.63s (0:05:15)
+
+$ pytest -m 'not perf' -q          # full engine suite, after the refactor
+231 passed, 1 deselected, 2 warnings in 462.85s (0:07:42)
+```
+231 = 155 (GPT-2 + chat endpoint + ops, unchanged and passing) + 76 (Qwen golden). The deselected test is the noisy
+perf guard.
+
+### Not covered
+- Qwen2.5-Coder-1.5B has no golden fixtures (weights not downloaded; download was declined). Only the 0.5B is verified.
+- The commit `bed9290` message says the batched/paged Qwen cases were still running; they have since passed (above).

@@ -39,3 +39,8 @@ Work one phase at a time from docs/agentforge-task-board.md. Update it after eve
 every non-trivial sub-step: what was built (real file/function names), problems hit and how
 fixed, the Done-when check and its actual output. Never mark something done without running the
 check and showing the result.
+
+Commit and push after every phase and every meaningful sub-step, not just at the end. Do not let
+uncommitted work accumulate. Each commit message states honestly what is verified and what is not
+(with the real test output); code and its task-board update go in the same commit where that makes
+sense. Never skip hooks or force-push.
