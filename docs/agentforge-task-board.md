@@ -282,6 +282,36 @@ $ pytest -m 'not perf' -q          # full engine suite, after the refactor
 231 = 155 (GPT-2 + chat endpoint + ops, unchanged and passing) + 76 (Qwen golden). The deselected test is the noisy
 perf guard.
 
-### Not covered
-- Qwen2.5-Coder-1.5B has no golden fixtures (weights not downloaded; download was declined). Only the 0.5B is verified.
-- The commit `bed9290` message says the batched/paged Qwen cases were still running; they have since passed (above).
+### Phase 3 addendum: Qwen2.5-Coder-1.5B golden verification (2026-09-21)
+
+**Why the 1.5B was not done originally.** Not a technical constraint. My download tool call was rejected by the user
+(interrupted, no reason given); I had not checked disk space and had no evidence of any blocker. The user then asked
+for the check and the download. Facts at that point: 852 GB free disk (11% used), ~12 GB available RAM, 1.5B fp32 is
+~6 GB. No blocker, so it was downloaded (HF cache 1.8 GB -> 4.6 GB) and verified exactly like the 0.5B.
+
+**Done:**
+- `scripts/make_fixtures_qwen.py qwen2.5-coder-1.5b` -> `tests/fixtures/qwen2.5-coder-1.5b/` (HF fp32 greedy reference,
+  same 10 cases, same overrides of the checkpoint's sampling defaults).
+- New case `chat_ok_eos_out64` for both models: a short chat reply that ends on EOS (2 tokens). Reason: the bench agent
+  prompt ends on EOS for the 0.5B (11 tokens) but runs the full 64 tokens for the 1.5B, so it cannot be the shared
+  EOS-path check. Regenerating the 0.5B fixtures left every existing file byte-identical (git showed only the new
+  file), a free determinism check on the HF reference.
+- `tests/test_golden_qwen.py` is now parametrized over both models: identical checks, same 11 cases, same batches.
+  Preemption budget is derived from each model's KV bytes/token (512 tokens: 12 MiB for 0.5B, 28 MiB for 1.5B).
+  `MAX_CONTEXT` for the tests is 2560 (above the longest fixture, 2020).
+- Shapes verified in `test_spec_reflects_gqa`: 1.5B = 28 layers, 12 q heads, 2 KV heads, head_dim 128
+  (57,344 KV bytes/token fp32; 0.5B is 24,576).
+
+**Result (actual output):**
+```
+$ pytest tests/test_golden_qwen.py -q
+162 passed in 1313.19s (0:21:53)
+```
+162 = 81 per model, both models, all paths: single-sequence cached, static, continuous, batch independence,
+join/leave mid-generation (max_batch 2/3/5), paged KV (block sizes 4 and 16: single, batch, join/leave), forced
+preemption-and-recompute, EOS stop, GQA spec. No tolerance, exact token-id equality with HF. **Both models pass.**
+
+### Still not covered
+- The 1.5B agent prompt fixture does not exercise EOS (only `chat_ok_eos_out64` does).
+- The full engine suite was not re-run after this change (only the golden file changed since the 231-pass run).
+- Serving-model choice for Phase 5 (0.5B vs 1.5B) is still undecided; that is the user's call.

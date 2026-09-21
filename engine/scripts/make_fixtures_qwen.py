@@ -39,6 +39,7 @@ PROBLEM = ("`parse()` throws a TypeError when the input schema is nullable and t
 EXTRA = {
     "long_2000_out20": ("long", 2000, 20, "RoPE and prefill at ~2K positions"),
     "agent_prompt_out64": ("agent", None, 64, "real bench system prompt through the chat template"),
+    "chat_ok_eos_out64": ("chat", None, 64, "short chat reply that ends on EOS (<|im_end|>) before max_new_tokens"),
 }
 
 
@@ -71,7 +72,9 @@ def main(model_key: str) -> None:
             assert len(long_base) >= plen
             cases[name] = (long_base[:plen], n_new, why)
         else:
-            text = tok.apply_chat_template([{"role": "user", "content": load_bench_prompt()}],
+            content = ("Reply with just the word OK and nothing else." if kind == "chat"
+                       else load_bench_prompt())
+            text = tok.apply_chat_template([{"role": "user", "content": content}],
                                            tokenize=False, add_generation_prompt=True)
             cases[name] = (tok.encode(text), n_new, why)
 
