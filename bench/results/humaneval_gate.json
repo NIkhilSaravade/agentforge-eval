@@ -1,0 +1,23 @@
+{
+ "dataset": {
+  "dataset": "openai/openai_humaneval",
+  "revision": "snapshots",
+  "file": "openai_humaneval/test-00000-of-00001.parquet",
+  "sha256": "2f2871a15fbc95b6c683043359f4ed8e144c5a1c4f24f25f66bc51f598dfcfb6",
+  "n_problems": 164
+ },
+ "n_problems": 164,
+ "seconds": 35.1,
+ "gold_passed": 164,
+ "gold_failed_ids": [],
+ "gold_outcomes": {
+  "passed": 164
+ },
+ "empty_passed": 0,
+ "empty_passed_ids": [],
+ "empty_outcomes": {
+  "failed": 164
+ },
+ "gold_failure_details": {},
+ "gate_ok": true
+}
