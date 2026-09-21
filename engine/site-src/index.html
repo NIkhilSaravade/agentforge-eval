@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="theme-color" content="#070a10" />
+    <title>llm-serve: serving LLMs is a scheduling problem</title>
+    <meta name="description" content="A from-scratch LLM inference server, measured honestly on a CPU: what continuous batching and a paged KV cache really buy, how it is built, proven and operated, and the eleven problems that broke along the way." />
+    <meta name="robots" content="index, follow" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="llm-serve: serving LLMs is a scheduling problem" />
+    <meta property="og:description" content="A from-scratch LLM inference server, measured honestly: continuous batching, a paged KV cache, the system design, the proof, and what broke." />
+    <meta property="og:image" content="%VITE_SITE_URL%/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="llm-serve: serving LLMs is a scheduling problem" />
+    <meta name="twitter:image" content="%VITE_SITE_URL%/og.png" />
+
+    <!-- external, not inline, so the Content-Security-Policy can forbid inline script entirely -->
+    <script src="/theme-init.js"></script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <div id="root"></div>
+    <noscript>
+      <main>
+        <h1>llm-serve</h1>
+        <p>
+          A from-scratch LLM inference server, measured honestly on a CPU: what continuous batching and a paged KV cache really buy,
+          how the scheduler and memory manager are built, how correctness is proven, how it is operated, and what broke along the way.
+        </p>
+        <p>This report is interactive (charts, diagrams and animations), so it needs JavaScript. Every number in it is generated from the raw benchmark data committed in the repository.</p>
+      </main>
+    </noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

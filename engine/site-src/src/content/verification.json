@@ -1,0 +1,107 @@
+[
+  {
+    "area": "Container",
+    "claim": "The image builds and runs under the same restrictions as the Kubernetes pod",
+    "status": "verified",
+    "how": "Docker Desktop: read-only filesystem, all capabilities dropped, non-root, offline. Ready in about 6 seconds and returns exactly the golden token ids.",
+    "source": "The image builds and serves."
+  },
+  {
+    "area": "Observability",
+    "claim": "Prometheus scrapes the server, loads every rule, and Grafana provisions the dashboard",
+    "status": "verified",
+    "how": "Compose stack under a real 2 requests per second run: every dashboard query returned data.",
+    "source": "The compose stack works end to end."
+  },
+  {
+    "area": "Alerts",
+    "claim": "The alert rules are syntactically valid",
+    "status": "verified",
+    "how": "promtool check rules accepts all of them, and a healthy run fired none.",
+    "source": "accepts the alert rules"
+  },
+  {
+    "area": "Overhead",
+    "claim": "The observability layer costs nothing measurable",
+    "status": "verified",
+    "how": "Same-session A/B on the same configuration and seed: 0.83 req/s before, 0.90 after.",
+    "source": "Observability overhead is not measurable."
+  },
+  {
+    "area": "Kubernetes",
+    "claim": "The manifests work on a live cluster",
+    "status": "verified",
+    "how": "Applied to a real Kubernetes cluster (kind), locally and in GitHub Actions: probes, zero-unavailable rollouts, a build that cannot start being contained, rollback, and an SLO canary.",
+    "source": "The manifests run on a real Kubernetes cluster"
+  },
+  {
+    "area": "Kubernetes",
+    "claim": "Autoscaling and node drains behave as designed",
+    "status": "not-verified",
+    "how": "The HPA is removed in the kind overlays (no metrics-server) and the PodDisruptionBudget has not been exercised by a node drain. Both are only rendered and reviewed.",
+    "source": "the PodDisruptionBudget has not been exercised by a node drain",
+    "doc": "docs/07-operations.md"
+  },
+  {
+    "area": "Alerts",
+    "claim": "An alert actually fires when it should",
+    "status": "not-verified",
+    "how": "Expressions parse and evaluate, but thresholds are reasoned from the benchmark, not exercised by bad traffic. The burn-rate alert needs an hour of it.",
+    "source": "No alert has been seen firing."
+  },
+  {
+    "area": "CI",
+    "claim": "The GitHub Actions workflow passes",
+    "status": "verified",
+    "how": "The ci, release and perf-calibrate workflows run green on GitHub. The production deploy workflow has not run.",
+    "source": "The GitHub Actions workflows run"
+  },
+  {
+    "area": "Hosting",
+    "claim": "This page is live on Cloudflare",
+    "status": "verified",
+    "how": "Deployed with Cloudflare Pages Git integration; a curl of the live URL returns 200 with the CSP, HSTS and cache headers from public/_headers.",
+    "source": "is live on Cloudflare Pages",
+    "doc": "docs/08-deploying-the-site.md"
+  },
+  {
+    "area": "Delivery",
+    "claim": "Every commit on main is built, published, deployed to Kubernetes and rolled back on a bad release",
+    "status": "verified",
+    "how": "release.yml ran green on GitHub: image pushed to GHCR, rolled out to a kind cluster, smoke-tested, a build that cannot start was contained with no capacity loss and rolled back.",
+    "source": "requires that capacity never drops and that the rollback restores the previous build",
+    "doc": "docs/07-operations.md"
+  },
+  {
+    "area": "Delivery",
+    "claim": "A canary aborts a release that passes readiness but breaches the SLO",
+    "status": "verified",
+    "how": "Run on a local kind cluster and again in GitHub Actions under steady traffic: the good release was promoted, the release that rejects requests was aborted by the Prometheus analysis, capacity never dropped and the stable pods kept serving.",
+    "source": "is aborted by the analysis with nobody intervening",
+    "doc": "docs/07-operations.md"
+  },
+  {
+    "area": "Delivery",
+    "claim": "The performance gate tells a real slowdown from noise",
+    "status": "verified",
+    "how": "On the GitHub runner: identical images scored goodput ratio 0.976 and throughput 1.001; a candidate given 2 CPUs instead of 3 scored 0.146 and 0.636 and failed the 0.85 threshold.",
+    "source": "produced ratios of 0.30 and 0.33 and failed the gate",
+    "doc": "docs/07-operations.md"
+  },
+  {
+    "area": "Delivery",
+    "claim": "The performance gate reads a real regression from a candidate build",
+    "status": "not-verified",
+    "how": "Only synthetic slowdowns (less CPU) have been tested. No commit has yet made the engine genuinely slower, so how the gate behaves on a real code regression is untested.",
+    "source": "has not been judged against a real code regression",
+    "doc": "docs/07-operations.md"
+  },
+  {
+    "area": "Delivery",
+    "claim": "The engine is deployed to a production host",
+    "status": "not-verified",
+    "how": "The production overlay renders in CI and passes a server-side dry run against a real API server. No VM exists: the provisioning script, the SSH deploy and the tunnel have never run.",
+    "source": "Nothing has been provisioned and the workflow has never run",
+    "doc": "docs/07-operations.md"
+  }
+]

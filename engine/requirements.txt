@@ -1,0 +1,6 @@
+-r requirements-serve.txt
+pytest
+matplotlib
+httpx
+pyyaml
+ruff

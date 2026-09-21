@@ -1,0 +1,122 @@
+{
+  "arrow-py__arrow-1222": {
+    "head_commit": "4c8c44aefc0e5504b9c3cbf0d6adbb0ec4aa4571",
+    "pr_merge_date": "2025-10-01",
+    "repo": "arrow-py/arrow"
+  },
+  "arrow-py__arrow-954": {
+    "head_commit": "1310dbbc32ce41adac4840e4e399da0f77836041",
+    "pr_merge_date": "2021-04-18",
+    "repo": "arrow-py/arrow"
+  },
+  "colinhacks__zod-6530": {
+    "head_commit": "cafbee4772ef481611fef6f5fb9ed9a1b9597069",
+    "pr_merge_date": "2026-08-31",
+    "repo": "colinhacks/zod"
+  },
+  "colinhacks__zod-6532": {
+    "head_commit": "f83ab51129038a2f868ee11dda906ed78ae2e478",
+    "pr_merge_date": "2026-08-31",
+    "repo": "colinhacks/zod"
+  },
+  "colinhacks__zod-6534": {
+    "head_commit": "07c43e2a08f67082bd35c158d528d571a36094e0",
+    "pr_merge_date": "2026-08-31",
+    "repo": "colinhacks/zod"
+  },
+  "colinhacks__zod-6572": {
+    "head_commit": "36f17960d1defca5d0896d9424f4e1059fbbf081",
+    "pr_merge_date": "2026-09-08",
+    "repo": "colinhacks/zod"
+  },
+  "colinhacks__zod-6587": {
+    "head_commit": "9446b5cc14c5bf137790f1f66abf602044871223",
+    "pr_merge_date": "2026-09-10",
+    "repo": "colinhacks/zod"
+  },
+  "date-fns__date-fns-3132": {
+    "head_commit": "b15fdacc4ec821edf51cc517a8648b953d9cb18f",
+    "pr_merge_date": "2024-01-09",
+    "repo": "date-fns/date-fns"
+  },
+  "date-fns__date-fns-3662": {
+    "head_commit": "d36d2ebde2f36d5accce37c0a6d8bce9d84e6eb1",
+    "pr_merge_date": "2024-01-15",
+    "repo": "date-fns/date-fns"
+  },
+  "jd__tenacity-609": {
+    "head_commit": "44eaefbbd0ec89fca573a1fffd55d149ac29cca9",
+    "pr_merge_date": "2026-02-24",
+    "repo": "jd/tenacity"
+  },
+  "jd__tenacity-615": {
+    "head_commit": "cb320c4d80d8af7e8953dbf40224172a06b9b977",
+    "pr_merge_date": "2026-02-25",
+    "repo": "jd/tenacity"
+  },
+  "jd__tenacity-654": {
+    "head_commit": "29d398bd21af492abeecd9fc9d33c48dc4d5fc08",
+    "pr_merge_date": "2026-07-13",
+    "repo": "jd/tenacity"
+  },
+  "jhy__jsoup-2595": {
+    "head_commit": "444c5a5d9ebf958aa5e834841455bf74384b9297",
+    "pr_merge_date": "2026-09-07",
+    "repo": "jhy/jsoup"
+  },
+  "jhy__jsoup-2598": {
+    "head_commit": "8ca4902ff3d9485f5d5c862d329757c4518fc2dc",
+    "pr_merge_date": "2026-09-08",
+    "repo": "jhy/jsoup"
+  },
+  "jhy__jsoup-2602": {
+    "head_commit": "97a392158f4d849af762ee7e984fb37c18bcd610",
+    "pr_merge_date": "2026-09-11",
+    "repo": "jhy/jsoup"
+  },
+  "stleary__JSON-java-1044": {
+    "head_commit": "b959027aa2e0f2757ffa53f3941e729590df90ea",
+    "pr_merge_date": "2026-03-16",
+    "repo": "stleary/JSON-java"
+  },
+  "stleary__JSON-java-1068": {
+    "head_commit": "80efb529d7fa19505a368ff0d2c123b7f12ed0ca",
+    "pr_merge_date": "2026-07-19",
+    "repo": "stleary/JSON-java"
+  },
+  "stleary__JSON-java-814": {
+    "head_commit": "783d298f990c75fa2de4f458d1647cbf8e46a858",
+    "pr_merge_date": "2023-10-31",
+    "repo": "stleary/JSON-java"
+  },
+  "trpc__trpc-7370": {
+    "head_commit": "c7360d4eb3c89c336468809a293e5cda4b302d4b",
+    "pr_merge_date": "2026-05-26",
+    "repo": "trpc/trpc"
+  },
+  "trpc__trpc-7390": {
+    "head_commit": "dfbafa8ef178a5a3d23ef9461caa9494b3ef7f95",
+    "pr_merge_date": "2026-07-26",
+    "repo": "trpc/trpc"
+  },
+  "trpc__trpc-7434": {
+    "head_commit": "ef684c82910c4c18342088fbe64d222cb25721ed",
+    "pr_merge_date": "2026-09-12",
+    "repo": "trpc/trpc"
+  },
+  "trpc__trpc-7464": {
+    "head_commit": "e35b9989bd474eec209fa2f9b36857a46c836940",
+    "pr_merge_date": "2026-09-12",
+    "repo": "trpc/trpc"
+  },
+  "trpc__trpc-7469": {
+    "head_commit": "d1a9ec68cea9740a5a46dcf98399d9a876f2313a",
+    "pr_merge_date": "2026-09-12",
+    "repo": "trpc/trpc"
+  },
+  "trpc__trpc-7477": {
+    "head_commit": "3d21d2c1364139938f1d7924802af67b506ca544",
+    "pr_merge_date": "2026-09-12",
+    "repo": "trpc/trpc"
+  }
+}
