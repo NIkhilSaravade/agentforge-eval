@@ -13,7 +13,7 @@ swap needs confirmation); negative results are published with root cause.
 | 3 | Golden test for the new model (Qwen2.5-Coder-0.5B) | DONE (2026-09-21) |
 | 4 | Real sampling (temperature + top-p, seedable) in the engine | DONE (2026-09-21) |
 | 5 | HumanEval harness: generate k, test, pass@k against the self-hosted model | DONE (2026-09-22) |
-| 6 | Budget experiment: same 164 problems, same k, frontier anchor (needs explicit spend approval) | NOT STARTED (replaces old Phase 5) |
+| 6 | Budget experiment: same 164 problems, same k, frontier anchor (needs explicit spend approval) | PROPOSAL WRITTEN, AWAITING APPROVAL (no spend) |
 | 7 | Write-up | NOT STARTED (was Phase 6) |
 
 ---
@@ -485,3 +485,64 @@ $ engine: pytest -m 'not perf'         -> 354 passed, 1 deselected in 1559.58s (
 $ bench:  pytest                       -> 69 passed in 35.17s
 ```
 354 = 341 (prior full pass) + 13 new (stop-token 3, sampler fast-path/speed 7, engine-thread 3). All 164 problems ran end-to-end with real pass@k and CIs.
+
+---
+
+## Phase 6 — Budget experiment: PROPOSAL (awaiting explicit approval; NOTHING SPENT, no API call made)
+
+Done-when: a results file with real, reproducible pass@k and cost numbers for both the self-hosted model and the frontier anchor, on the same task set.
+
+### Design
+- **Task set and scoring identical to Phase 5:** the same 164 HumanEval problems (dataset revision and file sha256 checked equal), the same fixed prompt (sha256 checked
+  equal), the same sandbox and scorer, the same n=10 samples per problem, so pass@1/5/10 with the same problem-level bootstrap CI are directly comparable.
+- **Harness:** the existing `humaneval generate/execute/report` via LiteLLM (`anthropic/<model>`), with two additions: (1) cost computed from `response.usage` tokens x the
+  live price table (not LiteLLM's price map, which may lag new models), (2) a spend circuit-breaker that tracks cumulative cost and aborts at a set threshold.
+- **Stages, each gated:** (0) check credentials without printing them; (1) PILOT per arm: 10 problems x 2 samples = 20 calls, to measure real tokens/sample (including any
+  thinking tokens) and confirm LiteLLM handles the model's parameters; (2) project the full-run cost from the pilot and compare to the approved cap; (3) full run only if the
+  projection is within the cap, otherwise STOP and ask; (4) execute, report, write `bench/results/humaneval/phase6_comparison.json`.
+- **Order:** the cheaper arm first, so parameter/param-drop problems surface at trivial cost.
+
+### Measured token volume (Phase 5, Qwen tokenizer): 310,330 prompt + 271,921 completion tokens over 1,640 samples (189 / 166 per sample).
+
+### Cost estimate (live prices from platform.claude.com/docs/en/about-claude/pricing, fetched 2026-09-22)
+Assumes NO thinking tokens, and a deliberately conservative x1.35 on token counts (Claude 4.7-and-later tokenizers produce ~30% more tokens for the same text; Haiku 4.5 uses the older one).
+Tokens used: 418,946 input, 367,093 output for 1,640 samples.
+
+| Model | $/MTok in / out | Est. cost, 164 x 10, no thinking | With Batch API (50% off) |
+|---|---|---|---|
+| Claude Haiku 4.5 | 1 / 5 | **$2.25** | $1.13 |
+| Claude Sonnet 5 | 2 / 10 | **$4.51** | $2.26 |
+| Claude Opus 5 | 5 / 25 | **$11.27** | $5.64 |
+| Claude Fable 5.1 | 10 / 50 | **$22.54** | $11.27 |
+
+**Thinking is the big unknown.** Opus 5 and Sonnet 5 think by default (adaptive); thinking tokens are billed as output. I do not know how many they will use on HumanEval. Illustrative only
+(the multipliers are guesses, the pilot measures the real value): Opus 5 with thinking at 3x output = ~$29.6, at 6x = ~$57. Fable 5.1 has thinking always on and cannot be turned off.
+
+### Recommended arms and cap
+- **Opus 5** (frontier anchor) and **Haiku 4.5** (cheapest hosted model: it answers "does self-hosting beat the cheapest API?", which is the thesis question). Estimated $13.5 without thinking.
+- **Hard cap $35 total** (pilots, full runs, retries), circuit-breaker aborting at 80% of remaining budget; stop and ask if the pilot projects over the cap.
+- Optional extras, only if you want them: Sonnet 5 (+$4.5), Fable 5.1 (+$22.5, thinking forced on, excluded from the recommendation).
+
+### Methodology differences that must be stated in the results (not hidden)
+1. **Sampling parameters cannot match.** The API reference states Opus 5, Sonnet 5 and Fable reject `temperature`/`top_p`/`top_k` (HTTP 400), so the hosted arms cannot run at T=0.8, top_p=0.95.
+   They sample at the API's own default; the self-hosted arm uses T=0.8, top_p=0.95 (and its greedy pass@1 is reported separately). pass@k is defined for both, but the sampling distributions differ.
+2. **Not seed-reproducible.** The hosted API has no seed. Saved completions make SCORING exactly reproducible; regenerating them will give different samples.
+3. **Thinking policy for Opus 5** (needs your decision): "on its own terms" = default adaptive thinking (higher cost, `max_tokens` must be large enough to hold thinking, so the visible-reply cap differs
+   from the self-hosted 512) vs thinking disabled (matches the self-hosted no-thinking regime; documented failure modes are about tool calls and `<thinking>` tag leakage, which the fenced-block
+   extractor mostly tolerates). Recommendation: pilot both on 10 problems x 2 samples, run the "own terms" arm if the projection stays under the cap, and report which was used.
+4. The contamination caveat applies to both sides (HumanEval is public).
+5. Refusals (`stop_reason: refusal`) are recorded and counted as fails; expected to be ~0 for this prompt.
+
+### Self-hosted cost side (needs your input)
+Measured: 2.60 h wall-clock for the 1,640 samples on this machine. No dollar cost is computed without an hourly rate. Rate-free comparison from measured numbers: self-hosting the 1,640 samples
+costs less than the hosted estimate only if the hardware rate is below (hosted cost / 2.60 h): **Haiku 4.5 ~$0.87/h, Sonnet 5 ~$1.73/h, Opus 5 ~$4.33/h** (no-thinking estimates; before any quality difference).
+Hosted runs take minutes at these sizes; the self-hosted CPU run took 2.6 hours. The comparison the results file will show: pass@k with CIs, cost per sample and cost per expected-solved sample for each
+arm, and this break-even hourly rate. If you give me an hourly rate (cloud-equivalent machine price, or electricity for the hardware you own), I will also compute the concrete self-hosted dollar figure.
+
+### Decisions needed before any spend
+1. Which arms (recommended: Opus 5 + Haiku 4.5)?
+2. Budget cap (proposed: $35 hard cap, abort at 80%)?
+3. Opus 5 thinking policy (own terms if projection fits the cap, else thinking off)?
+4. Accept the sampling-parameter asymmetry (hosted arms at API-default sampling)?
+5. An hourly rate for the self-hosted machine, or accept the break-even presentation?
+6. Confirm an `ANTHROPIC_API_KEY` (or `ant auth login` profile) is available in this environment; I will check without printing it and ask if absent.
