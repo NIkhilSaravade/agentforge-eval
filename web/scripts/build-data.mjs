@@ -16,14 +16,14 @@ const OUT = outArg > 0 ? resolve(process.argv[outArg + 1]) : resolve(HERE, "../s
 
 const R = "bench/results/humaneval";
 const sources = {};
-const read = (rel, optional = false) => {
+const read = (rel, optional = false, hash = true) => {
   const p = resolve(ROOT, rel);
   if (!existsSync(p)) {
     if (optional) return null;
     throw new Error(`missing source file: ${rel}`);
   }
   const buf = readFileSync(p);
-  sources[rel] = createHash("sha256").update(buf).digest("hex");
+  if (hash) sources[rel] = createHash("sha256").update(buf).digest("hex");
   return buf.toString("utf8");
 };
 const json = (rel, optional = false) => {
@@ -166,8 +166,10 @@ const gate = json("bench/results/humaneval_gate.json");
 must(gate.gate_ok === true, "the harness gate file reports gate_ok=false");
 
 // ---------------------------------------------------------------- facts that live only in prose (regex-verified)
-const step7 = read("bench/docs/step7-real-model-run.md");
-const board = read("docs/agentforge-task-board.md");
+// The docs are prose that people keep editing (the task board changes with every commit). They feed the site only through the
+// regex-verified facts below, so provenance is a hash of the PARSED FACTS, not of the whole document.
+const step7 = read("bench/docs/step7-real-model-run.md", false, false);
+const board = read("docs/agentforge-task-board.md", false, false);
 const total647 = match1(step7, /resolved (\d+) of (\d+) attempts/, "ts-bench local-model total");
 const tallySection = step7.slice(step7.indexOf("**Final tallies at the stopping point**"));
 const models = [...tallySection.matchAll(/\| `([^`]+)` \| (\d+)\/(\d+) \((complete|partial)\) \| (\d+) \|/g)].map((m) => ({
@@ -193,6 +195,8 @@ const facts = {
   tests: { golden: goldenTests, engine: engineTests, bench: benchTests },
   phases,
 };
+
+sources["(facts parsed from bench/docs/step7-real-model-run.md and docs/agentforge-task-board.md)"] = createHash("sha256").update(JSON.stringify(facts)).digest("hex");
 
 // ---------------------------------------------------------------- one real request, for the eval-architecture diagram
 const ex = json(`${R}/site_examples.json`);

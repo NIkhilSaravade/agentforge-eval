@@ -17,8 +17,7 @@
    "engine/results/thread_penalty_qwen2.5-coder-1.5b.json": "be86c34ebc80d42076b5652953ae99e468e3e617db730d155b1cdb3168711237",
    "bench/results/humaneval/qwen2.5-coder-1.5b/run.json": "1795b526af5b1bf40205f6162695c0466befe8f5297a160a29ea02d167100470",
    "bench/results/humaneval_gate.json": "a2e3857893822c064a292b3e0aa2aaa087238eada5ff8ca551ae18b49bbd8e9d",
-   "bench/docs/step7-real-model-run.md": "53744d8d22373a7fdcfb3718a4075488a973c3d001d9372100b0f74cf638c739",
-   "docs/agentforge-task-board.md": "667e95927e0a4a6ac6f21503abb30db7c1ad35ba69639e6ac619b8d68246d850",
+   "(facts parsed from bench/docs/step7-real-model-run.md and docs/agentforge-task-board.md)": "73c158f9afbfb2f3cbcd48228fc7d16de55e344bab9afd64ca3309b992df876f",
    "bench/results/humaneval/site_examples.json": "aa08dc1dee7938250e9290cce9163172102c006c10ac1020bbe8b6ea6dbdf170",
    "engine/results/scheduler_trace.json": "f5b253d7b94409523dd5b1c0e9762448c238f1f14d90a3858f91f004f6758dbd"
   }
