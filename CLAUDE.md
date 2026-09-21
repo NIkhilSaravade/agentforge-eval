@@ -6,12 +6,12 @@ Combines two existing projects into one: engine/ (from llm-serve — a from-scra
 inference server with a continuous-batching scheduler and paged KV-cache manager) and bench/
 (from ts-bench — a SWE-bench-style benchmark for AI coding agents across TypeScript/Python/Java).
 
-The thesis: ts-bench's real bottleneck is dollars-per-rollout on hosted APIs — a small budget
-buys only a handful of trials, nowhere near enough for a statistically meaningful pass@k against a
-real frontier model. The engine's whole value proposition is running many concurrent generations
-cheaply via continuous batching + paged KV cache. This project self-hosts an efficient inference
-engine and points the bench's agent loop at it, using the freed-up budget to run enough trials for
-a real result, then spending real API budget surgically on one frontier model as an anchor.
+The thesis (revised again 2026-09-21, see docs/agentforge-task-board.md, PIVOT): a model small enough to serve
+on CPU (Qwen2.5-Coder 0.5B/1.5B) cannot realistically solve bench's SWE-bench-style repo tasks (bench's own 14B-22B
+local models scored 0/647), so it is NOT evaluated there. It is evaluated on HumanEval (function-level Python),
+where small code models are competent, with real seeded sampling and pass@k (bench's `pipeline/stats.py`). The
+engine's cost/throughput advantage (continuous batching + paged KV cache, CPU-only) is then compared against a
+frontier anchor on the same 164 problems with the same k, with real spend only after explicit approval.
 
 ## Non-negotiables (inherited from both parents)
 
@@ -19,8 +19,8 @@ a real result, then spending real API budget surgically on one frontier model as
   pass only, HF reference allowed in tests only.
 - Correct before fast: a change isn't done without its test passing and, where relevant, a real
   number written to a results file.
-- No silent scope changes — the model swap (engine can't serve a coding agent with GPT-2 small)
-  is the biggest one; propose and get confirmation before acting on it.
+- No silent scope changes — the model swap was the biggest one and is now confirmed (Qwen2.5-Coder
+  0.5B tests / 1.5B serving, CPU-only; rule 6 no-GPU-serving stays). Anything else: propose first.
 - Never spend real API budget without explicit go-ahead in conversation.
 - Never tune a benchmark to look good — a negative result gets published with its root cause, not
   hidden or reworded.

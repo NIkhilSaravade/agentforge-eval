@@ -1,0 +1,59 @@
+{
+ "name": "block_exact_16",
+ "why": "prompt exactly one block",
+ "model": "qwen2.5-coder-0.5b",
+ "prompt_token_ids": [
+  1521,
+  304,
+  3309,
+  41674,
+  13,
+  52308,
+  31631,
+  77260,
+  2348,
+  862,
+  4544,
+  269,
+  819,
+  1393,
+  342,
+  70423
+ ],
+ "max_new_tokens": 20,
+ "expected_token_ids": [
+  1033,
+  23380,
+  304,
+  279,
+  3015,
+  13,
+  576,
+  7640,
+  1033,
+  10568,
+  553,
+  279,
+  31631,
+  323,
+  279,
+  342,
+  70423,
+  1033,
+  34561,
+  553
+ ],
+ "reference": {
+  "snapshot": "ea3f2471cf1b1f0db85067f1ef93848e38e88c25",
+  "dtype": "float32",
+  "transformers": "5.17.0",
+  "torch": "2.14.0+cpu",
+  "attn_implementation": "sdpa",
+  "do_sample": false,
+  "repetition_penalty": 1.0,
+  "eos_token_id": [
+   151645,
+   151643
+  ]
+ }
+}

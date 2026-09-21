@@ -42,9 +42,10 @@ class SlotManager:
                 "capacity_tokens": len(self.live) * self.max_len}
 
     @staticmethod
-    def slots_for_budget(budget_bytes: int, max_len: int = MAX_LEN) -> int:
+    def slots_for_budget(budget_bytes: int, max_len: int = MAX_LEN,
+                         bytes_per_token: int = BYTES_PER_TOKEN) -> int:
         # At least one slot even if the budget is smaller than a slot, otherwise nothing runs.
-        return max(1, budget_bytes // (max_len * BYTES_PER_TOKEN))
+        return max(1, budget_bytes // (max_len * bytes_per_token))
 
 
 class BlockManager:
@@ -114,5 +115,6 @@ class BlockManager:
                 "capacity_tokens": used * self.block_size}
 
     @staticmethod
-    def blocks_for_budget(budget_bytes: int, block_size: int) -> int:
-        return budget_bytes // (block_size * BYTES_PER_TOKEN)
+    def blocks_for_budget(budget_bytes: int, block_size: int,
+                          bytes_per_token: int = BYTES_PER_TOKEN) -> int:
+        return budget_bytes // (block_size * bytes_per_token)

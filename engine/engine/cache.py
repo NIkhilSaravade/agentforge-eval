@@ -9,6 +9,9 @@ from __future__ import annotations
 
 import torch
 
+from engine.spec import GPT2_SPEC, ModelSpec
+
+# GPT-2 defaults. Other models pass their own ModelSpec to the classes below.
 N_LAYERS = 12
 N_HEADS = 12
 HEAD_DIM = 64
@@ -20,10 +23,10 @@ BYTES_PER_TOKEN = 2 * N_LAYERS * N_HEADS * HEAD_DIM * 4
 class ContiguousKVCache:
     """Single-sequence cache (M1). The layout M4 will replace."""
 
-    def __init__(self, max_len: int = MAX_LEN) -> None:
+    def __init__(self, max_len: int = MAX_LEN, spec: ModelSpec = GPT2_SPEC) -> None:
         # empty, not zeros: unread positions are never attended to, and untouched pages
         # are not committed by the OS.
-        self.data = torch.empty(N_LAYERS, 2, N_HEADS, max_len, HEAD_DIM)
+        self.data = torch.empty(spec.n_layers, 2, spec.n_kv_heads, max_len, spec.head_dim)
         self.max_len = max_len
         self.length = 0  # tokens currently stored
 
@@ -49,8 +52,8 @@ class BatchAccess:
     to T = max(ns); pad positions are never written and never attended to by real rows.
     """
 
-    def __init__(self, starts: list[int], ns: list[int]) -> None:
-        self.starts, self.ns = starts, ns
+    def __init__(self, starts: list[int], ns: list[int], max_len: int = MAX_LEN) -> None:
+        self.starts, self.ns, self.max_len = starts, ns, max_len
         self.b, self.t = len(starts), max(ns)
         self.totals = [s + n for s, n in zip(starts, ns)]
         self.lk = max(self.totals)  # subclasses may round this up (paged: whole blocks)
@@ -73,7 +76,7 @@ class BatchAccess:
 
     def positions(self) -> torch.Tensor:
         pos = torch.tensor(self.starts)[:, None] + torch.arange(self.t)[None, :]
-        return pos.clamp_(max=MAX_LEN - 1)  # clamped only for pad columns of short rows
+        return pos.clamp_(max=self.max_len - 1)  # clamped only for pad columns of short rows
 
     def write(self, layer: int, k: torch.Tensor, v: torch.Tensor) -> None:
         raise NotImplementedError
@@ -84,7 +87,7 @@ class BatchAccess:
 
 class SlotAccess(BatchAccess):
     def __init__(self, pool: "SlotPool", slots: list[int], starts: list[int], ns: list[int]):
-        super().__init__(starts, ns)
+        super().__init__(starts, ns, pool.max_len)
         self.pool, self.slots = pool, slots
         self.slots_t = torch.tensor(slots)
         self.starts_t = torch.tensor(starts)
@@ -111,13 +114,14 @@ class SlotAccess(BatchAccess):
 class SlotPool:
     """`n_slots` contiguous sequences of `max_len` tokens each, per layer."""
 
-    def __init__(self, n_slots: int, max_len: int = MAX_LEN) -> None:
-        self.n_slots, self.max_len = n_slots, max_len
+    def __init__(self, n_slots: int, max_len: int = MAX_LEN, spec: ModelSpec = GPT2_SPEC) -> None:
+        self.n_slots, self.max_len, self.spec = n_slots, max_len, spec
         # zeros, not empty: touch every page at startup, like a real server that preallocates
         # its pool. With empty(), first-touch page faults land inside timed regions and made
         # identical runs differ by ~25% depending on whether the allocator recycled memory.
-        self.k = [torch.zeros(n_slots, N_HEADS, max_len, HEAD_DIM) for _ in range(N_LAYERS)]
-        self.v = [torch.zeros(n_slots, N_HEADS, max_len, HEAD_DIM) for _ in range(N_LAYERS)]
+        shape = (n_slots, spec.n_kv_heads, max_len, spec.head_dim)
+        self.k = [torch.zeros(shape) for _ in range(spec.n_layers)]
+        self.v = [torch.zeros(shape) for _ in range(spec.n_layers)]
 
     def access(self, block_tables: list[list[int]], starts: list[int], ns: list[int]) -> SlotAccess:
         # For slot-backed requests the "block table" is a one-element list holding the slot.
@@ -129,7 +133,7 @@ class PagedAccess(BatchAccess):
 
     def __init__(self, pool: "PagedPool", block_tables: list[list[int]], starts: list[int],
                  ns: list[int]) -> None:
-        super().__init__(starts, ns)
+        super().__init__(starts, ns, pool.max_len)
         self.pool, self.tables = pool, block_tables
         bs = pool.block_size
         nb = -(-self.lk // bs)                      # blocks covering the longest row
@@ -169,7 +173,8 @@ class PagedAccess(BatchAccess):
         out = []
         for pool_t in (self.pool.k[layer], self.pool.v[layer]):
             g = pool_t[self.bt_t]                                   # [B, nb, H, bs, D]
-            g = g.permute(0, 2, 1, 3, 4).reshape(b, N_HEADS, nb * bs, HEAD_DIM)
+            g = g.permute(0, 2, 1, 3, 4).reshape(b, self.pool.spec.n_kv_heads, nb * bs,
+                                              self.pool.spec.head_dim)
             out.append(g[:, :, :self.lk])                           # drop the tail of the last block
         return out[0], out[1]
 
@@ -177,11 +182,14 @@ class PagedAccess(BatchAccess):
 class PagedPool:
     """One flat pool of fixed-size blocks per layer: [num_blocks, heads, block_size, head_dim]."""
 
-    def __init__(self, num_blocks: int, block_size: int) -> None:
-        self.num_blocks, self.block_size = num_blocks, block_size
+    def __init__(self, num_blocks: int, block_size: int, spec: ModelSpec = GPT2_SPEC,
+                 max_len: int | None = None) -> None:
+        self.num_blocks, self.block_size, self.spec = num_blocks, block_size, spec
+        self.max_len = max_len or spec.max_context   # only bounds position ids of padded columns
         # zeros so pages are touched at startup (see SlotPool).
-        self.k = [torch.zeros(num_blocks, N_HEADS, block_size, HEAD_DIM) for _ in range(N_LAYERS)]
-        self.v = [torch.zeros(num_blocks, N_HEADS, block_size, HEAD_DIM) for _ in range(N_LAYERS)]
+        shape = (num_blocks, spec.n_kv_heads, block_size, spec.head_dim)
+        self.k = [torch.zeros(shape) for _ in range(spec.n_layers)]
+        self.v = [torch.zeros(shape) for _ in range(spec.n_layers)]
 
     def access(self, block_tables: list[list[int]], starts: list[int], ns: list[int]) -> PagedAccess:
         return PagedAccess(self, block_tables, starts, ns)

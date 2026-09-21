@@ -1,0 +1,48 @@
+{
+ "name": "short_5_out20",
+ "why": "basic sanity",
+ "model": "qwen2.5-coder-0.5b",
+ "prompt_token_ids": [
+  785,
+  74642,
+  6290,
+  38726,
+  13970
+ ],
+ "max_new_tokens": 20,
+ "expected_token_ids": [
+  11,
+  323,
+  279,
+  74642,
+  572,
+  2058,
+  89156,
+  448,
+  1251,
+  13,
+  576,
+  74642,
+  572,
+  264,
+  1992,
+  1380,
+  1251,
+  1410,
+  728,
+  311
+ ],
+ "reference": {
+  "snapshot": "ea3f2471cf1b1f0db85067f1ef93848e38e88c25",
+  "dtype": "float32",
+  "transformers": "5.17.0",
+  "torch": "2.14.0+cpu",
+  "attn_implementation": "sdpa",
+  "do_sample": false,
+  "repetition_penalty": 1.0,
+  "eos_token_id": [
+   151645,
+   151643
+  ]
+ }
+}

@@ -51,7 +51,7 @@ class Observability:
         info = GaugeMetricFamily("llm_build_info", "Build and model identity.",
                                  labels=["git_sha", "model", "backend", "batching", "torch"])
         cfg = engine.cfg
-        info.add_metric([os.environ.get("GIT_SHA", "unknown"), "gpt2", cfg.backend, cfg.batching,
+        info.add_metric([os.environ.get("GIT_SHA", "unknown"), engine.runner.spec.name, cfg.backend, cfg.batching,
                          torch.__version__], 1)
         self.registry.register(_Static([info]))
 
@@ -110,6 +110,6 @@ class _StateCollector:
 
 
 def version_info(engine: "Engine") -> dict:
-    return {"git_sha": os.environ.get("GIT_SHA", "unknown"), "model": "gpt2",
+    return {"git_sha": os.environ.get("GIT_SHA", "unknown"), "model": engine.runner.spec.name,
             "torch": torch.__version__, "python": platform.python_version(),
             "config": engine.cfg.to_dict()}

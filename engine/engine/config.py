@@ -8,6 +8,8 @@ from dataclasses import asdict, dataclass
 
 @dataclass
 class EngineConfig:
+    model: str = "gpt2"              # "gpt2" | "qwen2.5-coder-0.5b" | "qwen2.5-coder-1.5b"
+    max_context: int | None = None   # served context cap; None = the model's default in engine/spec.py
     backend: str = "contiguous"      # naive | contiguous | paged
     batching: str = "continuous"     # static | continuous
     max_batch: int = 16              # decode slots (rows) per step

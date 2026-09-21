@@ -1,0 +1,58 @@
+{
+ "name": "block_minus1_15",
+ "why": "one token under a block boundary",
+ "model": "qwen2.5-coder-0.5b",
+ "prompt_token_ids": [
+  91785,
+  389,
+  279,
+  922,
+  352,
+  13,
+  758,
+  279,
+  65144,
+  389,
+  8220,
+  6686,
+  11,
+  8127,
+  64
+ ],
+ "max_new_tokens": 20,
+ "expected_token_ids": [
+  374,
+  20045,
+  264,
+  17923,
+  19145,
+  13,
+  2932,
+  702,
+  264,
+  3460,
+  19145,
+  429,
+  374,
+  220,
+  16,
+  17,
+  14924,
+  553,
+  220,
+  16
+ ],
+ "reference": {
+  "snapshot": "ea3f2471cf1b1f0db85067f1ef93848e38e88c25",
+  "dtype": "float32",
+  "transformers": "5.17.0",
+  "torch": "2.14.0+cpu",
+  "attn_implementation": "sdpa",
+  "do_sample": false,
+  "repetition_penalty": 1.0,
+  "eos_token_id": [
+   151645,
+   151643
+  ]
+ }
+}

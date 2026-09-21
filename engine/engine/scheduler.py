@@ -18,7 +18,7 @@ from engine.block_manager import BlockManager, SlotManager
 from engine.cache import PagedPool, SlotPool
 from engine.config import EngineConfig
 from engine.metrics import EngineMetrics
-from engine.model_runner import EOS_TOKEN_ID, MAX_CONTEXT, ModelRunner
+from engine.model_runner import ModelRunner, load_runner
 from engine.request import Request, RequestState
 
 
@@ -33,8 +33,9 @@ class Scheduler:
 
     # ------------------------------------------------------------------ intake
     def submit(self, req: Request) -> None:
-        # Position 1023 is the last usable position, so cap the output accordingly.
-        req.max_new_tokens = min(req.max_new_tokens, MAX_CONTEXT - len(req.prompt_token_ids))
+        # The last usable position is max_context - 1, so cap the output accordingly.
+        req.max_new_tokens = min(req.max_new_tokens,
+                                 self.runner.spec.max_context - len(req.prompt_token_ids))
         req.state = RequestState.WAITING
         self.waiting.append(req)
 
@@ -180,7 +181,7 @@ class Scheduler:
             req.first_token_time = now
         if len(req.output_token_ids) >= req.max_new_tokens:
             req.finish_reason = "length"
-        elif tok == EOS_TOKEN_ID and not req.ignore_eos:
+        elif tok in self.runner.spec.eos_ids and not req.ignore_eos:
             req.finish_reason = "stop"
         if req.finished:
             req.finish_time = now
@@ -198,7 +199,8 @@ class NaiveScheduler:
         self.running: list[Request] = []
 
     def submit(self, req: Request) -> None:
-        req.max_new_tokens = min(req.max_new_tokens, MAX_CONTEXT - len(req.prompt_token_ids))
+        req.max_new_tokens = min(req.max_new_tokens,
+                                 self.runner.spec.max_context - len(req.prompt_token_ids))
         self.waiting.append(req)
 
     def has_work(self) -> bool:
@@ -214,8 +216,8 @@ class NaiveScheduler:
         def on_token(tok: int) -> None:
             if req.sink:
                 done = (len(req.output_token_ids) >= req.max_new_tokens
-                        or (tok == EOS_TOKEN_ID and not req.ignore_eos)
-                        or req.seq_len >= MAX_CONTEXT)
+                        or (tok in self.runner.spec.eos_ids and not req.ignore_eos)
+                        or req.seq_len >= self.runner.spec.max_context)
                 req.sink(tok, done)
 
         self.runner.run(req, on_token)
@@ -228,21 +230,24 @@ class Engine:
 
     def __init__(self, cfg: EngineConfig, runner: ModelRunner | None = None) -> None:
         self.cfg = cfg
-        self.runner = runner or ModelRunner(cfg.num_threads)
+        self.runner = runner or load_runner(cfg)
         if cfg.backend == "naive":
             self.sched: Scheduler | NaiveScheduler = NaiveScheduler(cfg, self.runner)
             return
         budget = cfg.kv_budget_mib * 1024 * 1024
         if cfg.backend == "paged":
-            n_blocks = BlockManager.blocks_for_budget(budget, cfg.block_size)
-            self.pool = PagedPool(n_blocks, cfg.block_size)
+            spec = self.runner.spec
+            n_blocks = BlockManager.blocks_for_budget(budget, cfg.block_size, spec.bytes_per_token)
+            self.pool = PagedPool(n_blocks, cfg.block_size, spec)
             self.manager = BlockManager(n_blocks, cfg.block_size,
                                         reserve_max_new=not cfg.preemption)
         else:
-            # LIMITATION: contiguous slots each reserve the full 1024-token context up front.
-            n_slots = min(cfg.max_batch, SlotManager.slots_for_budget(budget))
-            self.pool = SlotPool(n_slots)
-            self.manager = SlotManager(n_slots)
+            # LIMITATION: contiguous slots each reserve the full max_context (1024 for GPT-2) up front.
+            spec = self.runner.spec
+            n_slots = min(cfg.max_batch, SlotManager.slots_for_budget(
+                budget, spec.max_context, spec.bytes_per_token))
+            self.pool = SlotPool(n_slots, spec.max_context, spec)
+            self.manager = SlotManager(n_slots, spec.max_context)
         self.sched = Scheduler(cfg, self.runner, self.pool, self.manager)
 
     def generate_batch(self, prompts: list[list[int]], max_new: list[int]) -> list[list[int]]:

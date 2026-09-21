@@ -18,6 +18,7 @@ import torch.nn.functional as F
 from transformers import GPT2LMHeadModel, GPT2TokenizerFast
 
 from engine.cache import HEAD_DIM, N_HEADS, N_LAYERS, ContiguousKVCache
+from engine.spec import GPT2_SPEC
 from engine.metrics import EngineMetrics
 from engine.request import Request, RequestState
 
@@ -38,6 +39,7 @@ class ModelRunner:
     def __init__(self, num_threads: int = DEFAULT_NUM_THREADS) -> None:
         torch.set_num_threads(num_threads)
         self.num_threads = num_threads
+        self.spec = GPT2_SPEC
         # transformers supplies weights and tokenizer ONLY. The loops below are ours.
         self.tokenizer = GPT2TokenizerFast.from_pretrained("gpt2")
         self.model = GPT2LMHeadModel.from_pretrained("gpt2", dtype=torch.float32)
@@ -181,3 +183,13 @@ class ModelRunner:
             # The token just produced sits at position seq_len - 1 (P + N - 1 on decode step N).
             logits = self._forward_single([nxt], seq_len - 1, cache)
         return out
+
+
+def load_runner(cfg):
+    """Build the model runner an EngineConfig asks for. GPT-2 stays the default."""
+    if cfg.model == "gpt2":
+        return ModelRunner(cfg.num_threads)
+    from engine.qwen_runner import MODEL_IDS, Qwen2Runner
+    if cfg.model not in MODEL_IDS:
+        raise ValueError(f"unknown model {cfg.model!r}; choose gpt2 or one of {sorted(MODEL_IDS)}")
+    return Qwen2Runner(cfg.model, cfg.num_threads, cfg.max_context)
