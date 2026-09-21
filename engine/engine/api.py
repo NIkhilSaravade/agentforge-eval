@@ -112,13 +112,23 @@ def create_app(cfg: EngineConfig | None = None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         c = cfg or EngineConfig.from_env()
-        engine = Engine(c)
-        # Warm up before reporting ready: first-call costs (allocator, kernels) must not land
-        # on a user request. Then forget the warmup in the counters.
-        engine.generate_greedy([1, 2, 3], 2)
-        engine.sched.metrics.reset()
-        loop = EngineLoop(engine)
+
+        def build() -> Engine:
+            # Runs on the engine-loop thread, so the thread that loads the weights is the thread that
+            # serves with them (see EngineLoop: ~45% faster decode than loading on this event-loop thread).
+            engine = Engine(c)
+            # Warm up before reporting ready: first-call costs (allocator, kernels) must not land
+            # on a user request. Then forget the warmup in the counters.
+            engine.generate_greedy([1, 2, 3], 2)
+            engine.sched.metrics.reset()
+            return engine
+
+        loop = EngineLoop(build=build)
         loop.start()
+        await asyncio.get_running_loop().run_in_executor(None, loop.ready.wait)
+        if loop.build_error is not None:
+            raise loop.build_error
+        engine = loop.engine
         state.update(cfg=c, engine=engine, loop=loop, t_reset=time.perf_counter(),
                      obs=Observability(engine, loop), ready=True)
         log.info(json.dumps({"event": "ready", **version_info(engine)}))

@@ -256,3 +256,41 @@ def test_every_namespaced_resource_lands_in_the_llm_serve_namespace(overlay):
     stray = [f'{d["kind"]}/{d["metadata"]["name"]}' for d in yaml.safe_load_all(out)
              if d and d["kind"] not in cluster_scoped and d["metadata"].get("namespace") != "llm-serve"]
     assert stray == [], f"resources outside the llm-serve namespace: {stray}"
+
+
+# --------------------------------------------------------------------------- engine is built on its own thread
+def test_engine_loop_builds_the_engine_on_the_loop_thread(engine):
+    """Found by profiling the HumanEval run: weights loaded on one thread and served from another decoded ~45%
+    slower. The API now builds the engine on the loop thread; pin that it stays that way."""
+    import threading
+    from engine.config import EngineConfig
+    from engine.scheduler import Engine, EngineLoop
+    seen = {}
+
+    def build():
+        seen["thread"] = threading.current_thread().name
+        return Engine(EngineConfig(max_batch=2), engine)
+
+    loop = EngineLoop(build=build)
+    loop.start()
+    assert loop.ready.wait(60) and loop.build_error is None
+    assert seen["thread"] == "engine-loop" == loop._thread.name
+    loop.stop()
+
+
+def test_engine_loop_surfaces_a_failed_build(engine):
+    from engine.scheduler import EngineLoop
+
+    def boom():
+        raise RuntimeError("no weights")
+
+    loop = EngineLoop(build=boom)
+    loop.start()
+    assert loop.ready.wait(10)
+    assert isinstance(loop.build_error, RuntimeError)
+
+
+def test_engine_loop_needs_exactly_one_of_engine_or_build(engine):
+    from engine.scheduler import EngineLoop
+    with pytest.raises(ValueError):
+        EngineLoop()

@@ -13,6 +13,7 @@ import queue
 import threading
 import time
 import uuid
+from typing import Callable
 
 from engine.block_manager import BlockManager, SlotManager
 from engine.cache import PagedPool, SlotPool
@@ -288,8 +289,22 @@ class EngineLoop:
     """Runs the scheduler on its own thread. The scheduler is only ever touched from that
     thread; other threads hand requests over through a thread-safe inbox."""
 
-    def __init__(self, engine: Engine) -> None:
-        self.engine, self.sched = engine, engine.sched
+    def __init__(self, engine: Engine | None = None, build: Callable[[], Engine] | None = None) -> None:
+        """Give either a ready `engine`, or a `build` callable that is run ON THE LOOP THREAD before serving.
+
+        Why build on the loop thread: measured on this machine, weights loaded on one thread and then used
+        from another made every decode step ~45% slower (Qwen 1.5B, 32 concurrent requests: 90 s vs 59 s
+        when the same thread loads and runs the model; 65 s when both are the main thread). The API server
+        used to load on the event-loop thread and serve from this one. Mechanism not established; the
+        measurement is what the design follows."""
+        if (engine is None) == (build is None):
+            raise ValueError("pass exactly one of engine or build")
+        self.engine, self._build = engine, build
+        self.sched = engine.sched if engine is not None else None
+        self.build_error: BaseException | None = None
+        self.ready = threading.Event()
+        if engine is not None:
+            self.ready.set()
         self.inbox: queue.Queue[Request] = queue.Queue()
         self._wake = threading.Event()
         self._stop = threading.Event()
@@ -318,6 +333,15 @@ class EngineLoop:
         return True
 
     def _run(self) -> None:
+        if self._build is not None:
+            try:
+                self.engine = self._build()
+                self.sched = self.engine.sched
+            except BaseException as e:      # surfaced to whoever waits on `ready`; the thread then ends
+                self.build_error = e
+                self.ready.set()
+                return
+            self.ready.set()
         while not self._stop.is_set():
             while True:
                 try:
