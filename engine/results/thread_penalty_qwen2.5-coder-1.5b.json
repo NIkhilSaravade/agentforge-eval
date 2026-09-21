@@ -1,0 +1,30 @@
+{
+ "model": "qwen2.5-coder-1.5b",
+ "concurrent_requests": 32,
+ "prompt_tokens": 160,
+ "new_tokens": 100,
+ "threads": 20,
+ "results": [
+  {
+   "mode": "main",
+   "wall_seconds": 60.9,
+   "tokens_per_second": 52.6,
+   "prefill_seconds": 19.9,
+   "decode_seconds": 41.0
+  },
+  {
+   "mode": "thread",
+   "wall_seconds": 88.1,
+   "tokens_per_second": 36.3,
+   "prefill_seconds": 26.0,
+   "decode_seconds": 62.1
+  },
+  {
+   "mode": "thread_all",
+   "wall_seconds": 60.0,
+   "tokens_per_second": 53.3,
+   "prefill_seconds": 19.1,
+   "decode_seconds": 40.9
+  }
+ ]
+}

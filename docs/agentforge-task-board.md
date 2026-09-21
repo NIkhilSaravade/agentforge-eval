@@ -14,7 +14,7 @@ swap needs confirmation); negative results are published with root cause.
 | 4 | Real sampling (temperature + top-p, seedable) in the engine | DONE (2026-09-21) |
 | 5 | HumanEval harness: generate k, test, pass@k against the self-hosted model | DONE (2026-09-22) |
 | 6 | Budget experiment: same 164 problems, same k, frontier anchor (needs explicit spend approval) | DONE (2026-09-22), $6.06 spent of $6.50 cap |
-| 7 | Write-up | NOT STARTED (was Phase 6) |
+| 7 | Write-up | DONE (2026-09-22) |
 
 ---
 
@@ -622,3 +622,33 @@ $ python -m humaneval.compare  -> pass@1 self 66.89 | greedy 72.56 | haiku 92.74
 $ bench: pytest                 -> 79 passed in 37.75 s (69 prior + 10 new: cost formula, ledger, breaker, request shape, no key stored)
 ```
 The engine suite was not re-run: no engine code changed in Phase 6 (last full pass: 354 passed).
+
+---
+
+## Phase 7 — Write-up (DONE 2026-09-22)
+
+Done-when: a top-level README with the real story and numbers verbatim from the results file, including an honest statement of where the self-hosted model fell short.
+
+### Built
+- `README.md` (repo root): the headline (self-hosted 66.89% pass@1 vs Haiku 4.5 92.74% vs Opus 5 96.95%), results tables, cost/speed, break-even hourly rates, a "Where the self-hosted model
+  fell short" section, "Where self-hosting still helps" with the measured batching numbers, the history of the original plan that did not survive (ts-bench 0/647 evidence, the two reframes),
+  what was built, "Things found by measuring", caveats, reproduce commands, repo map.
+- To make every measured number in the README traceable to a committed file, two measurements that previously existed only as scratch output were turned into committed scripts with saved JSON:
+  `engine/scripts/bench_decode_sweep.py` -> `engine/results/decode_sweep_qwen2.5-coder-1.5b.json` and `engine/scripts/bench_thread_penalty.py` -> `engine/results/thread_penalty_qwen2.5-coder-1.5b.json`.
+
+### Verification (actual output)
+A script recomputed 40 numbers from `bench/results/humaneval/phase6_comparison.json`, the decode-sweep JSON and the thread-penalty JSON and checked each appears in the README:
+```
+checked 40 numbers; all present in README
+```
+(It first reported 3 misses, all comma formatting: 9351.8 vs 9,351.8; the values were right. The checker was adjusted, not the README.)
+Two factual errors in my first draft were caught on re-reading and fixed before commit: the OOM-killed HumanEval/100 samples were self-hosted (not Haiku's), and a sentence about per-solved-sample break-even was worded backwards.
+
+### Numbers in the README that come from re-runs, not the original run
+The decode sweep was re-run for the committed file and differs from my earlier ad-hoc run (batch 8: 30.9 vs ~41.8 tok/s), which the README says openly. The thread experiment was also re-run in fresh processes:
+main 60.9 s, loaded-on-main-run-on-thread 88.1 s (45% slower), loaded-and-run-on-same-thread 60.0 s (the original ad-hoc numbers were 65.2 / 90.5 / 59.1).
+
+### Project status
+All seven phases done. Total hosted spend $6.064139 (cap $6.50). Engine suite 354 passed (last full run, before Phase 6; no engine code changed since except two new measurement scripts). Bench suite 79 passed.
+Known open items (not done, listed so they are not lost): re-run truncated hosted samples at a larger token cap (~$0.6, over the cap); Opus 5 with default thinking at scale; n=10 for Opus 5; an hourly rate for the self-hosted machine to turn the break-even into a dollar figure;
+prefix caching and a padding-free attention path in the engine (the 0.96 s/step real-workload decode vs 0.38 s uniform benchmark is unexplained); Qwen2.5-Coder-3B; the SWE-bench-style tasks with a stronger model.

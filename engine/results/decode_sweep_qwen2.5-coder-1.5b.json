@@ -1,0 +1,38 @@
+{
+ "model": "qwen2.5-coder-1.5b",
+ "threads": 20,
+ "context_tokens": 400,
+ "block_size": 16,
+ "torch": "2.14.0+cpu",
+ "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+ "rows": [
+  {
+   "batch": 1,
+   "prefill_seconds": 1.853,
+   "prefill_tokens_per_second": 215.9,
+   "decode_step_seconds": 0.1126,
+   "decode_tokens_per_second": 8.9
+  },
+  {
+   "batch": 8,
+   "prefill_seconds": 8.577,
+   "prefill_tokens_per_second": 373.1,
+   "decode_step_seconds": 0.2587,
+   "decode_tokens_per_second": 30.9
+  },
+  {
+   "batch": 16,
+   "prefill_seconds": 19.5,
+   "prefill_tokens_per_second": 328.2,
+   "decode_step_seconds": 0.2395,
+   "decode_tokens_per_second": 66.8
+  },
+  {
+   "batch": 32,
+   "prefill_seconds": 37.808,
+   "prefill_tokens_per_second": 338.5,
+   "decode_step_seconds": 0.3824,
+   "decode_tokens_per_second": 83.7
+  }
+ ]
+}
