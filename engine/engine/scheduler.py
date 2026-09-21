@@ -105,7 +105,8 @@ class Scheduler:
         # Prompt plus any tokens already generated (non-empty only after a preemption).
         toks = [r.prompt_token_ids + r.output_token_ids for r in batch]
         nxt = self.runner.step_tokens(toks, [0] * len(batch), self.pool,
-                                      [r.block_table for r in batch])
+                                      [r.block_table for r in batch],
+                                      [r.sampler for r in batch])
         self.metrics.prefills += len(batch)
         self.metrics.prefill_seconds += time.perf_counter() - t0
         for req, tok in zip(batch, nxt):
@@ -125,7 +126,8 @@ class Scheduler:
         # The token fed in is the last one produced; it sits at position seq_len - 1.
         nxt = self.runner.step_tokens([[r.output_token_ids[-1]] for r in batch],
                                       [r.seq_len - 1 for r in batch], self.pool,
-                                      [r.block_table for r in batch])
+                                      [r.block_table for r in batch],
+                                      [r.sampler for r in batch])
         self.metrics.decode_seconds += time.perf_counter() - t0
         st = self.manager.stats()
         live, cap = st["live_tokens"], st["capacity_tokens"]
@@ -250,8 +252,11 @@ class Engine:
             self.manager = SlotManager(n_slots, spec.max_context)
         self.sched = Scheduler(cfg, self.runner, self.pool, self.manager)
 
-    def generate_batch(self, prompts: list[list[int]], max_new: list[int]) -> list[list[int]]:
-        reqs = [Request(uuid.uuid4().hex, list(p), n) for p, n in zip(prompts, max_new)]
+    def generate_batch(self, prompts: list[list[int]], max_new: list[int],
+                       samplers: list | None = None) -> list[list[int]]:
+        samplers = samplers or [None] * len(prompts)
+        reqs = [Request(uuid.uuid4().hex, list(p), n, sampler=s)
+                for p, n, s in zip(prompts, max_new, samplers)]
         for r in reqs:
             self.sched.submit(r)
         while self.sched.has_work():

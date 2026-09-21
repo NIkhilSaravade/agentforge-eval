@@ -120,9 +120,13 @@ def test_content_parts_list_is_accepted(client):
     assert r.status_code == 200
 
 
-def test_sampling_params_accepted_but_greedy(client):
-    """LiteLLM always sends temperature; we must not reject it. Output stays deterministic."""
-    body = {"messages": MSGS, "max_tokens": 8, "temperature": 0.9, "top_p": 0.5}
+def test_temperature_zero_is_greedy_and_seeded_sampling_is_reproducible(client):
+    """LiteLLM always sends temperature. 0 must be exactly greedy; > 0 samples, deterministically per seed."""
+    greedy = client.post("/v1/chat/completions", json={"messages": MSGS, "max_tokens": 8}).json()
+    zero = client.post("/v1/chat/completions",
+                       json={"messages": MSGS, "max_tokens": 8, "temperature": 0}).json()
+    assert zero["choices"][0]["message"] == greedy["choices"][0]["message"]
+    body = {"messages": MSGS, "max_tokens": 8, "temperature": 0.9, "top_p": 0.5, "seed": 3}
     a = client.post("/v1/chat/completions", json=body).json()
     b = client.post("/v1/chat/completions", json=body).json()
     assert a["choices"][0]["message"] == b["choices"][0]["message"]

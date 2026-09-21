@@ -18,6 +18,7 @@ import torch.nn.functional as F
 from transformers import GPT2LMHeadModel, GPT2TokenizerFast
 
 from engine.cache import HEAD_DIM, N_HEADS, N_LAYERS, ContiguousKVCache
+from engine.sampling import pick_tokens
 from engine.spec import GPT2_SPEC
 from engine.metrics import EngineMetrics
 from engine.request import Request, RequestState
@@ -132,7 +133,7 @@ class ModelRunner:
     # ------------------------------------------------------------------ M2 (batched)
     @torch.inference_mode()
     def step_tokens(self, token_lists: list[list[int]], starts: list[int], pool,
-                    block_tables: list[list[int]]) -> list[int]:
+                    block_tables: list[list[int]], samplers=None) -> list[int]:
         """One forward step for a batch. Row i feeds `token_lists[i]` at positions
         starts[i]..; returns the greedy next token for each row.
 
@@ -164,7 +165,7 @@ class ModelRunner:
         last = F.layer_norm(last, (HIDDEN,), self.ln_f[0], self.ln_f[1], 1e-5)
         pad_frac = 1.0 - sum(acc.totals) / (b * acc.lk)
         self.last_pad_frac = pad_frac
-        return torch.argmax(last @ self.wte.T, dim=-1).tolist()
+        return pick_tokens(last @ self.wte.T, samplers)
 
     def generate_cached(self, prompt_token_ids: list[int], max_new_tokens: int,
                         ignore_eos: bool = False) -> list[int]:

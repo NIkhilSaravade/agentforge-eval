@@ -17,6 +17,7 @@ import torch
 import torch.nn.functional as F
 
 from engine.cache import ContiguousKVCache
+from engine.sampling import pick_tokens
 from engine.spec import ModelSpec
 
 MODEL_IDS = {
@@ -181,9 +182,10 @@ class Qwen2Runner:
     # ------------------------------------------------------------------ M2+: batched, pooled
     @torch.inference_mode()
     def step_tokens(self, token_lists: list[list[int]], starts: list[int], pool,
-                    block_tables: list[list[int]]) -> list[int]:
+                    block_tables: list[list[int]], samplers=None) -> list[int]:
         """One forward step for a batch; row i feeds token_lists[i] at positions starts[i]..
-        Returns the greedy next token per row. Same contract as ModelRunner.step_tokens."""
+        Returns the next token per row: greedy unless that row has a Sampler. Same contract as
+        ModelRunner.step_tokens."""
         ns = [len(t) for t in token_lists]
         acc = pool.access(block_tables, starts, ns)
         b, t = acc.b, acc.t
@@ -203,7 +205,7 @@ class Qwen2Runner:
         last = x[torch.arange(b), torch.tensor(ns) - 1]    # last REAL token of each row
         last = _rms_norm(last, self.norm, self.eps)
         self.last_pad_frac = 1.0 - sum(acc.totals) / (b * acc.lk)
-        return torch.argmax(F.linear(last, self.lm_head), dim=-1).tolist()
+        return pick_tokens(F.linear(last, self.lm_head), samplers)
 
     # ------------------------------------------------------------------ M0
     def run(self, req, on_token=None):

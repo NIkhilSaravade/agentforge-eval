@@ -6,8 +6,8 @@ Endpoints
                                                              while a multi-byte character is incomplete)
                         {"done": true, "finish_reason": "length", "n_tokens": 64}
   POST /v1/chat/completions   OpenAI-compatible; stream=true returns SSE `data: {chunk}` lines
-                      ending in `data: [DONE]`. Decoding is greedy: temperature/top_p are accepted
-                      and ignored (see ChatIn); n != 1 is a 400.
+                      ending in `data: [DONE]`. temperature > 0 samples (top_p, seed honoured, see
+                      engine/sampling.py); temperature 0 or absent is greedy; n != 1 is a 400.
   GET  /health        liveness: the process is up and the scheduler thread is alive
   GET  /ready         readiness: model loaded and warmed (503 otherwise)
   GET  /metrics       Prometheus exposition (see engine/observability.py)
@@ -35,6 +35,7 @@ from engine.config import EngineConfig
 from engine.detokenizer import IncrementalDetokenizer
 from engine.observability import Observability, version_info
 from engine.request import Request
+from engine.sampling import Sampler
 from engine.scheduler import Engine, EngineLoop
 
 log = logging.getLogger("llm_serve")
@@ -51,6 +52,9 @@ class GenerateIn(BaseModel):
     prompt_token_ids: list[int] | None = None   # the load generator sends ids directly
     max_new_tokens: int = 32
     ignore_eos: bool = False                    # benchmarks fix the output length exactly
+    temperature: float = 0.0                    # 0 = greedy (golden-tested path); > 0 = sample
+    top_p: float = 1.0
+    seed: int | None = None                     # per-request RNG seed; omitted = random, echoed back
     stream: bool = False
 
 
@@ -67,11 +71,21 @@ class ChatIn(BaseModel):
     stream: bool = False
     stream_options: dict | None = None
     n: int = 1
-    # LIMITATION: the engine only does greedy decoding, so sampling knobs are accepted for client
-    # compatibility (LiteLLM always sends temperature) but have no effect.
+    # temperature absent or 0 = greedy; > 0 samples. Intended for short independent generations.
     temperature: float | None = None
     top_p: float | None = None
+    seed: int | None = None
     stop: str | list[str] | None = None       # accepted, NOT yet enforced (Phase 4 decides if needed)
+
+
+def make_sampler(temperature: float | None, top_p: float | None, seed: int | None) -> Sampler | None:
+    """None (greedy) unless temperature > 0. Bad values are a 400, not a silent fallback."""
+    if not temperature:
+        return None
+    try:
+        return Sampler(temperature, 1.0 if top_p is None else top_p, seed)
+    except ValueError as e:
+        raise HTTPException(400, str(e))
 
 
 def _content_text(m: ChatMessage) -> str:
@@ -155,7 +169,8 @@ def create_app(cfg: EngineConfig | None = None) -> FastAPI:
         def __init__(self, **kw) -> None:
             self.__dict__.update(kw)
 
-    def _start(http: HttpRequest, ids: list[int], max_new_tokens: int, ignore_eos: bool) -> _Job:
+    def _start(http: HttpRequest, ids: list[int], max_new_tokens: int, ignore_eos: bool,
+               sampler: Sampler | None = None) -> _Job:
         """Validate, submit to the scheduler, and return handles to consume its tokens.
 
         Shared by /generate and /v1/chat/completions so both go through the same admission
@@ -167,7 +182,7 @@ def create_app(cfg: EngineConfig | None = None) -> FastAPI:
         headers = {"X-Request-ID": rid}
         loop = asyncio.get_running_loop()
         events: asyncio.Queue = asyncio.Queue()
-        req = Request(rid, ids, max_new_tokens, ignore_eos=ignore_eos)
+        req = Request(rid, ids, max_new_tokens, ignore_eos=ignore_eos, sampler=sampler)
         # The sink runs on the engine thread; hop back onto the event loop safely.
         req.sink = lambda t, fin: loop.call_soon_threadsafe(events.put_nowait, (t, fin))
         max_ctx = engine.runner.spec.max_context
@@ -221,7 +236,8 @@ def create_app(cfg: EngineConfig | None = None) -> FastAPI:
         if not 0 < len(ids) < max_ctx:
             raise HTTPException(400, f"prompt must have 1..{max_ctx - 1} tokens")
 
-        job = _start(http, ids, body.max_new_tokens, body.ignore_eos)
+        sampler = make_sampler(body.temperature, body.top_p, body.seed)
+        job = _start(http, ids, body.max_new_tokens, body.ignore_eos, sampler)
         req, rid, headers, detok, events_iter, finish = (
             job.req, job.rid, job.headers, job.detok, job.events_iter, job.finish)
 
@@ -267,7 +283,8 @@ def create_app(cfg: EngineConfig | None = None) -> FastAPI:
         return JSONResponse({"request_id": rid, "token_ids": req.output_token_ids, "text": text,
                              "finish_reason": req.finish_reason,
                              "ttft_s": req.first_token_time - req.arrival_time,
-                             "e2e_s": req.finish_time - req.arrival_time}, headers=headers)
+                             "e2e_s": req.finish_time - req.arrival_time,
+                             "seed": sampler.seed if sampler else None}, headers=headers)
 
     @app.post("/v1/chat/completions")
     async def chat_completions(body: ChatIn, http: HttpRequest):
@@ -283,7 +300,8 @@ def create_app(cfg: EngineConfig | None = None) -> FastAPI:
             raise HTTPException(400, f"prompt must have 1..{max_ctx - 1} tokens")
         max_new = body.max_completion_tokens or body.max_tokens or (max_ctx - len(ids))
 
-        job = _start(http, ids, max_new, ignore_eos=False)
+        sampler = make_sampler(body.temperature, body.top_p, body.seed)
+        job = _start(http, ids, max_new, ignore_eos=False, sampler=sampler)
         req, detok, finish = job.req, job.detok, job.finish
         cid = "chatcmpl-" + job.rid
         created = int(time.time())
