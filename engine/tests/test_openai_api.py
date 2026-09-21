@@ -155,3 +155,41 @@ def test_chat_template_used_when_tokenizer_has_one():
             return "|".join(m["role"] for m in msgs) + "|<gen>"
     out = render_chat_prompt(Tok(), [ChatMessage(**m) for m in MSGS])
     assert out == "system|user|<gen>"
+
+
+# --------------------------------------------------------------------------- the stop token is not content
+@pytest.fixture(scope="module")
+def qwen_client():
+    cfg = EngineConfig(model="qwen2.5-coder-0.5b", max_context=1024, max_batch=2, num_threads=4)
+    with TestClient(create_app(cfg)) as c:
+        yield c
+
+
+OK_MSGS = [{"role": "user", "content": "Reply with just the word OK and nothing else."}]
+
+
+def test_stop_token_is_not_in_the_reply_text(qwen_client):
+    """Found by the HumanEval smoke run: the reply ended in the literal text '<|im_end|>'."""
+    j = qwen_client.post("/v1/chat/completions", json={"messages": OK_MSGS, "max_tokens": 32}).json()
+    c = j["choices"][0]
+    assert c["finish_reason"] == "stop"
+    assert "<|im_end|>" not in c["message"]["content"] and "<|endoftext|>" not in c["message"]["content"]
+    assert c["message"]["content"].strip() == "OK"
+    assert j["usage"]["completion_tokens"] == 2          # "OK" + the stop token is still counted
+
+
+def test_stop_token_is_not_in_the_streamed_text(qwen_client):
+    r = qwen_client.post("/v1/chat/completions", json={"messages": OK_MSGS, "max_tokens": 32, "stream": True})
+    chunks = [json.loads(e) for e in _sse_events(r.text)[:-1]]
+    streamed = "".join(c["choices"][0]["delta"].get("content", "") for c in chunks)
+    assert "<|im_end|>" not in streamed and streamed.strip() == "OK"
+    assert chunks[-1]["choices"][0]["finish_reason"] == "stop"
+
+
+def test_generate_still_returns_the_stop_token_for_golden_semantics(qwen_client):
+    """/generate is the raw token interface: EOS stays in token_ids exactly as the golden tests expect."""
+    prompt = ("<|im_start|>user\nReply with just the word OK and nothing else.<|im_end|>\n"
+              "<|im_start|>assistant\n")
+    j = qwen_client.post("/generate", json={"prompt": prompt, "max_new_tokens": 32}).json()
+    assert j["finish_reason"] == "stop" and j["token_ids"][-1] == 151645
+    assert j["text"].endswith("<|im_end|>")

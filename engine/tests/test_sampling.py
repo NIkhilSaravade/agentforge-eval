@@ -265,3 +265,59 @@ def test_qwen_same_seed_same_output_and_it_actually_samples(qwen_case):
     assert a != c                                              # different seed: different
     assert a != runner.generate_cached(f["prompt_token_ids"], 40)   # not just greedy
     assert run(7, backend="paged", block_size=16) == a         # backend does not change the draws
+
+
+# --------------------------------------------------------------------------- nucleus fast path is EXACT
+def _reference_nucleus(logits: torch.Tensor, temperature: float, top_p: float):
+    """The obvious full-vocabulary implementation (what Phase 4 originally shipped)."""
+    probs = torch.softmax(logits.to(torch.float64) / temperature, dim=-1)   # float64 = the mathematical truth
+    sp, idx = torch.sort(probs, descending=True, stable=True)
+    cum = torch.cumsum(sp, dim=-1)
+    sp = sp * ((cum - sp) < top_p)
+    return idx, (sp / sp.sum()).to(torch.float32)
+
+
+@pytest.mark.parametrize("scale,temperature,top_p", [
+    (3.0, 0.8, 0.95), (3.0, 1.0, 0.5), (1.0, 0.7, 0.9), (6.0, 1.3, 0.99), (0.2, 1.0, 0.95)])
+def test_nucleus_fast_path_equals_full_sort(scale, temperature, top_p):
+    g = torch.Generator().manual_seed(1)
+    for _ in range(25):
+        logits = torch.randn(151936, generator=g) * scale
+        s = Sampler(temperature, top_p, seed=0)
+        idx, p = s.nucleus(logits)
+        ridx, rp = _reference_nucleus(logits, temperature, top_p)
+        n = int((rp > 0).sum())
+        assert n >= 1
+        kept = idx[p > 0]
+        assert set(kept.tolist()) == set(ridx[:n].tolist())              # same nucleus
+        ref = {int(i): float(q) for i, q in zip(ridx[:n], rp[:n])}
+        for i, q in zip(kept.tolist(), p[p > 0].tolist()):
+            assert abs(ref[i] - q) < 1e-5                                # same renormalised probabilities
+
+
+def test_nucleus_falls_back_to_full_sort_on_flat_distributions():
+    """5,000 equally likely tokens: the top-256 hold ~5% of the mass, far below top_p, so the fast path must
+    NOT be used; the nucleus is ~95% of 5,000 tokens."""
+    logits = torch.full((151936,), -1e9)
+    logits[:5000] = 0.0
+    s = Sampler(1.0, 0.95, seed=0)
+    idx, p = s.nucleus(logits)
+    assert int((p > 0).sum()) == pytest.approx(4750, abs=2)
+    ridx, rp = _reference_nucleus(logits, 1.0, 0.95)
+    assert int((rp > 0).sum()) == int((p > 0).sum())
+    assert 0 <= s.sample(logits) < 5000
+
+
+def test_sampling_is_fast_enough_for_batched_decode():
+    """Regression guard for the defect the HumanEval smoke run exposed (11.8 ms/row/step with a full-vocab
+    sort). Uses a peaked distribution like real LM logits (measured on Qwen: top-256 tokens hold >99.99% of the
+    mass), not flat noise. Generous bound so it is not flaky; the old implementation was ~2x over it."""
+    import time
+    logits = torch.randn(151936) * 3
+    logits[:20] += 15.0
+    s = Sampler(0.8, 0.95, seed=1)
+    s.sample(logits)
+    t0 = time.perf_counter()
+    for _ in range(40):
+        s.sample(logits)
+    assert (time.perf_counter() - t0) / 40 < 0.006

@@ -315,6 +315,13 @@ def create_app(cfg: EngineConfig | None = None) -> FastAPI:
                 d["usage"] = usage
             return "data: " + json.dumps(d) + "\n\n"
 
+        eos_ids = engine.runner.spec.eos_ids
+
+        def visible(t: int, text: str, fin: bool) -> str:
+            # The stop token (<|im_end|>, <|endoftext|>) ends the reply; it is not content. It stays in the
+            # token stream (golden tests and /generate keep it) and is still counted in usage.
+            return "" if (fin and req.finish_reason == "stop" and t in eos_ids) else text
+
         def usage() -> dict:
             n_out = len(req.output_token_ids)
             return {"prompt_tokens": len(ids), "completion_tokens": n_out,
@@ -327,7 +334,8 @@ def create_app(cfg: EngineConfig | None = None) -> FastAPI:
                 status = "error"
                 try:
                     yield chunk({"role": "assistant", "content": ""})
-                    async for _, text, fin, _ in job.events_iter():
+                    async for t, text, fin, _ in job.events_iter():
+                        text = visible(t, text, fin)
                         if text:
                             yield chunk({"content": text})
                         if fin:
@@ -355,8 +363,8 @@ def create_app(cfg: EngineConfig | None = None) -> FastAPI:
 
         text, status = "", "error"
         try:
-            async for _, piece, fin, _ in job.events_iter():
-                text += piece
+            async for t, piece, fin, _ in job.events_iter():
+                text += visible(t, piece, fin)
             status = "ok"
         except asyncio.CancelledError:
             status = "cancelled"
