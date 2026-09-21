@@ -664,7 +664,7 @@ Rules inherited from the project: every number traces to a file; the negative re
 |---|---|---|
 | W1 | Scaffold, data pipeline (`web/scripts/build-data.mjs` -> `web/src/data.json`), data tests | DONE (2026-09-22) |
 | W2 | Real scheduler trace recorded from the actual engine + the animated engine diagram | DONE (2026-09-22) |
-| W3 | Opening, pivot story, eval-architecture trace (a real request's path) | NOT STARTED |
+| W3 | Opening, pivot story, eval-architecture trace (a real request's path) | DONE (2026-09-22) |
 | W4 | Results: table, CI chart, per-problem strips, break-even chart, caveats at equal weight | NOT STARTED |
 | W5 | Close, polish, "AI tell" lint, number-provenance lint, screenshots reviewed, mobile check | NOT STARTED |
 
@@ -737,3 +737,30 @@ $ vite build        -> built (466 KB JS gzip 133 KB; fonts self-hosted)
 $ shots.mjs         -> no page errors (desktop 1440x900 and mobile 390x844)
 ```
 Screenshots reviewed: the opening, the engine figure at 7 scroll positions, a mid-animation eviction (ghost X's on the 3 evicted blocks, chip returning to the queue tagged RECOMPUTE, red step text), and the final state.
+
+## W3 — The pivot story and the eval-architecture trace (DONE 2026-09-22)
+
+### Built
+- `web/src/sections/Pivot.tsx` + `components/AttemptsGrid.tsx`: the pivot told as problem, reasoning, decision. The centrepiece is every one of ts-bench's earlier attempts as one square: 647 hollow squares for the three local models (the partial run's unrun cells shown as
+  shaded, not attempted) and Haiku 4.5's 20 with 6 filled. The doc's own "narrow claim" sentence and its caveat are quoted, from `data.json`, not paraphrased. The model-size sentence uses only sizes the data states (two of the three local models are 14B-tagged, 9.3x the served 1.5B; the third, codestral, is a
+  12 GB download against 9 GB), and says so.
+- `web/src/components/RequestTrace.tsx` + `sections/Harness.tsx`: one REAL sample's path through the harness in seven stages (prompt, engine, reply, assemble, sandbox, score, aggregate), scroll-driven, with a pass/fail toggle. It uses HumanEval/6 from `site_examples.json`: the actual prompt sent, the request
+  parameters and per-sample seed, the model's raw reply, the dataset's hidden test, the docker flags, the real assertion failure of the failing sample (`assert [1, 2, 2, 2, 2, 2, ...] == [2, 3, 1, 3]`), the real outcome counts across all 1,640 samples, and the aggregation with the real pass@k, bootstrap draws, and the harness gate (164/164 gold, 0/164 empty, and its first run at 160/164).
+- `web/scripts/build-data.mjs` extended, all regex-verified (build fails if the text changes): model sizes and download sizes, the doc's caveat sentence, the failed first gate run, the sandbox flags parsed from `bench/humaneval/sandbox.py`, the bootstrap draw count and seed parsed from `report.py`, the client's in-flight request count, this problem's own pass@1 and pass@3.
+- Rail: the active section is now computed from scroll position.
+
+### Problems hit (all found by reading the page or the source, not by tests)
+- The rail highlighted "03 The harness" while the reader was in section 02: the IntersectionObserver kept stale state when no heading was in its narrow band. Replaced with a scroll-position computation.
+- The request-trace panel changed height between stages and left half the viewport blank. Fixed with a constant panel height and real supporting content (what the sandbox tests prove; the outcome table).
+- Three factual overstatements in my own draft prose, caught on re-reading against the data: "the smallest of those local models" (codestral's size was not in the data), "the lowest-numbered problem the model solves in 7 of 10 tries" (the rule is 4 to 7 passes; it LANDED on 7), and "the same code drives all three models" (generation differs by provider: LiteLLM for the engine, the Anthropic SDK for hosted; prompt, sandbox and scorer are shared). All corrected.
+- One data.json commit broke a test (the doc hash changed with every board edit); fixed earlier by hashing the parsed facts instead. Chained shell commands now use `&&`.
+- Screenshot tooling: `html { scroll-behavior: smooth }` made captures land on the wrong stage; the capture script disables it for itself only. An earlier inline patch also corrupted the script through shell interpolation; repaired.
+
+### Check (actual output)
+```
+$ tsc -b       -> clean
+$ vitest run   -> 14 passed (data.json fresh; matches the board and README tables)
+$ vite build   -> built
+$ shots.mjs    -> no page errors (desktop + mobile)
+```
+Screenshots reviewed: pivot (attempts grid, quote, reasoning), all seven trace stages for the passing sample, the Score stage for both samples.

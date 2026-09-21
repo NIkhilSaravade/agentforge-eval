@@ -12,20 +12,31 @@ export const SECTIONS = [
   { id: "close", no: "05", label: "Close" },
 ] as const;
 
+/** The active section is the last one whose heading has scrolled above 40% of the viewport. */
 function useActive(ids: readonly string[]): string {
   const [active, setActive] = useState(ids[0] ?? "");
   useEffect(() => {
-    const els = ids.map((id) => document.getElementById(id)).filter((e): e is HTMLElement => e !== null);
-    const io = new IntersectionObserver(
-      (entries) => {
-        const visible = entries.filter((e) => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
-        const first = visible[0];
-        if (first) setActive(first.target.id);
-      },
-      { rootMargin: "-20% 0px -65% 0px" },
-    );
-    els.forEach((e) => io.observe(e));
-    return () => io.disconnect();
+    let raf = 0;
+    const compute = () => {
+      raf = 0;
+      let cur = ids[0] ?? "";
+      for (const id of ids) {
+        const el = document.getElementById(id);
+        if (el && el.getBoundingClientRect().top <= window.innerHeight * 0.4) cur = id;
+      }
+      setActive(cur);
+    };
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(compute);
+    };
+    compute();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
   }, [ids]);
   return active;
 }

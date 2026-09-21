@@ -17,7 +17,9 @@
    "engine/results/thread_penalty_qwen2.5-coder-1.5b.json": "be86c34ebc80d42076b5652953ae99e468e3e617db730d155b1cdb3168711237",
    "bench/results/humaneval/qwen2.5-coder-1.5b/run.json": "1795b526af5b1bf40205f6162695c0466befe8f5297a160a29ea02d167100470",
    "bench/results/humaneval_gate.json": "a2e3857893822c064a292b3e0aa2aaa087238eada5ff8ca551ae18b49bbd8e9d",
-   "(facts parsed from bench/docs/step7-real-model-run.md and docs/agentforge-task-board.md)": "73c158f9afbfb2f3cbcd48228fc7d16de55e344bab9afd64ca3309b992df876f",
+   "(facts parsed from bench/docs/step7-real-model-run.md and docs/agentforge-task-board.md)": "dddc1f7fd4d41f4e3f2fee017c124079f7fe06329a83e57a26d01d22e271417b",
+   "bench/humaneval/sandbox.py": "f149c8063165991f3ffdb5b675affa7814ad15f9f35826553223b9f27ffe263a",
+   "bench/humaneval/report.py": "d788e2383b3bbb0809564259a8148f99a9ef1c78a95d02631140f67f23c1639a",
    "bench/results/humaneval/site_examples.json": "aa08dc1dee7938250e9290cce9163172102c006c10ac1020bbe8b6ea6dbdf170",
    "engine/results/scheduler_trace.json": "f5b253d7b94409523dd5b1c0e9762448c238f1f14d90a3858f91f004f6758dbd"
   }
@@ -4316,6 +4318,7 @@
    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39"
   },
   "servedConfig": {
+   "clientWorkers": 40,
    "model": "qwen2.5-coder-1.5b",
    "backend": "paged",
    "batching": "continuous",
@@ -4343,29 +4346,41 @@
      "attempts": 240,
      "planned": 240,
      "status": "complete",
-     "resolved": 0
+     "resolved": 0,
+     "downloadGB": 9,
+     "paramsB": 14
     },
     {
      "model": "codestral:latest",
      "attempts": 240,
      "planned": 240,
      "status": "complete",
-     "resolved": 0
+     "resolved": 0,
+     "downloadGB": 12,
+     "paramsB": null
     },
     {
      "model": "qwen3:14b",
      "attempts": 167,
      "planned": 240,
      "status": "partial",
-     "resolved": 0
+     "resolved": 0,
+     "downloadGB": 9.3,
+     "paramsB": 14
     }
    ],
+   "servedParamsB": 1.5,
    "haiku": {
     "attempts": 20,
     "resolved": 6,
     "percent": 30
    },
-   "narrowClaim": "under this plain bash-loop scaffold, on this 24-instance set, these three local open-weight models resolved 0 of 647 attempts."
+   "narrowClaim": "under this plain bash-loop scaffold, on this 24-instance set, these three local open-weight models resolved 0 of 647 attempts.",
+   "narrowClaimCaveat": "these models cannot solve such tasks under a different scaffold"
+  },
+  "gateFirstRun": {
+   "passed": 160,
+   "of": 164
   },
   "tests": {
    "golden": 162,
@@ -4424,6 +4439,7 @@
   "userMessage": "Complete the following Python function. Reply with the complete function implementation in a single ```python code block and nothing else.\n\n```python\nfrom typing import List\n\n\ndef parse_nested_parens(paren_string: str) -> List[int]:\n    \"\"\" Input to this function is a string represented multiple groups for nested parentheses separated by spaces.\n    For each of the group, output the deepest level of nesting of parentheses.\n    E.g. (()()) has maximum two levels of nesting while ((())) has three.\n\n    >>> parse_nested_parens('(()()) ((())) () ((())()())')\n    [2, 3, 1, 3]\n    \"\"\"\n```",
   "passing": {
    "sampleIdx": 0,
+   "seed": 6000,
    "reply": "```python\nfrom typing import List\n\n\ndef parse_nested_parens(paren_string: str) -> List[int]:\n    \"\"\" Input to this function is a string represented multiple groups for nested parentheses separated by spaces.\n    For each of the group, output the deepest level of nesting of parentheses.\n    E.g. (()()) has maximum two levels of nesting while ((())) has three.\n\n    >>> parse_nested_parens('(()()) ((())) () ((())()())')\n    [2, 3, 1, 3]\n    \"\"\"\n    def max_depth(s):\n        max_depth = 0\n        current_depth = 0\n        for char in s:\n            if char == '(':\n                current_depth += 1\n                max_depth = max(max_depth, current_depth)\n            elif char == ')':\n                current_depth -= 1\n        return max_depth\n\n    return [max_depth(group) for group in paren_string.split()]\n```",
    "assemblyMode": "full_function",
    "finishReason": "stop",
@@ -4438,6 +4454,7 @@
   },
   "failing": {
    "sampleIdx": 1,
+   "seed": 6001,
    "reply": "```python\nfrom typing import List\n\ndef parse_nested_parens(paren_string: str) -> List[int]:\n    \"\"\" Input to this function is a string represented multiple groups for nested parentheses separated by spaces.\n    For each of the group, output the deepest level of nesting of parentheses.\n    E.g. (()()) has maximum two levels of nesting while ((())) has three.\n\n    >>> parse_nested_parens('(()()) ((())) () ((())()())')\n    [2, 3, 1, 3]\n    \"\"\"\n    result = []\n    max_depth = 0\n    current_depth = 0\n\n    for char in paren_string:\n        if char == '(':\n            current_depth += 1\n            if current_depth > max_depth:\n                max_depth = current_depth\n        elif char == ')':\n            current_depth -= 1\n\n        result.append(max_depth)\n\n    return result\n```",
    "assemblyMode": "full_function",
    "finishReason": "stop",
@@ -4449,7 +4466,26 @@
    "outcome": "failed",
    "detail": "assert [1, 2, 2, 2, 2, 2, ...] == [2, 3, 1, 3]\n  \n  At index 0 diff: 1 != 2\n  Left contains 23 more items, first extra item: 2\n  Use -v to get more diff",
    "programLines": 39
-  }
+  },
+  "passAt1": 0.7,
+  "passAt3": 0.9916666666666667
+ },
+ "sandbox": {
+  "image": "agentforge-humaneval:py312",
+  "network": "none",
+  "user": "10001:10001",
+  "capDrop": "ALL",
+  "tmpfs": "/tmp:rw,size=64m",
+  "memory": "1g",
+  "pids": 256,
+  "cpus": "1",
+  "fsizeBytes": 50000000,
+  "readOnlyRootfs": true,
+  "noNewPrivileges": true
+ },
+ "bootstrap": {
+  "draws": 10000,
+  "seed": 0
  },
  "caveats": [
   "Sampling differs by design: the self-hosted arm samples at T=0.8, top_p=0.95 (seeded); the hosted arms use the API's default sampling because Opus 5 / Sonnet 5 reject temperature/top_p. Hosted runs are not seed-reproducible; scoring is reproducible from the saved completions.",

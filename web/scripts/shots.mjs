@@ -30,6 +30,7 @@ try {
     page.on("console", (m) => { if (m.type() === "error") errors.push(`${name} console: ${m.text()}`); });
     await page.goto(`http://localhost:${PORT}/`, { waitUntil: "networkidle" });
     await page.evaluate(() => document.fonts.ready);
+    await page.addStyleTag({ content: "html { scroll-behavior: auto !important; }" }); // captures should not wait out smooth scrolling
     await wait(600);
     await page.screenshot({ path: `${OUT}/${name}-top.png` });
     await page.screenshot({ path: `${OUT}/${name}-full.png`, fullPage: true });
@@ -53,6 +54,39 @@ try {
           await page.evaluate(([t, h, f]) => window.scrollTo(0, t + f * (h - window.innerHeight)), [box.top, box.height, f]);
           await wait(1300);
           await page.screenshot({ path: `${OUT}/engine-${String(Math.round(f * 100)).padStart(2, "0")}.png` });
+        }
+      }
+    }
+    if (name === "desktop") {
+      const hb = await page.evaluate(() => {
+        const el = document.querySelectorAll(".scrolly")[1];
+        if (!el) return null;
+        const r = el.getBoundingClientRect();
+        return { top: r.top + window.scrollY, height: r.height };
+      });
+      if (hb) {
+        for (const f of [0.03, 0.2, 0.36, 0.52, 0.68, 0.84, 0.97]) {
+          await page.evaluate(([t, h, f]) => window.scrollTo(0, t + f * (h - window.innerHeight)), [hb.top, hb.height, f]);
+          await wait(900);
+          await page.screenshot({ path: `${OUT}/harness-${String(Math.round(f * 100)).padStart(2, "0")}.png` });
+        }
+        await page.evaluate(([t, h]) => window.scrollTo(0, t + 0.8 * (h - window.innerHeight)), [hb.top, hb.height]);
+        await wait(500);
+        await page.screenshot({ path: `${OUT}/harness-pass-score.png` });
+        await page.getByRole("button", { name: /fails/ }).click();
+        await page.evaluate(([t, h]) => window.scrollTo(0, t + 0.8 * (h - window.innerHeight)), [hb.top, hb.height]);
+        await wait(900);
+        await page.screenshot({ path: `${OUT}/harness-fail-score.png` });
+      }
+      const pv = await page.evaluate(() => {
+        const el = document.getElementById("pivot");
+        return el ? el.getBoundingClientRect().top + window.scrollY : null;
+      });
+      if (pv !== null) {
+        for (const [i, off] of [[1, -20], [2, 700], [3, 1500]]) {
+          await page.evaluate((y) => window.scrollTo(0, y), pv + off);
+          await wait(700);
+          await page.screenshot({ path: `${OUT}/pivot-${i}.png` });
         }
       }
     }

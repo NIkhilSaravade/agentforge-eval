@@ -157,7 +157,7 @@ const engine = {
   hardware: cmp.arms.self_hosted_sampled.self_hosted.hardware,
   servedConfig: (() => {
     const c = json(`${R}/qwen2.5-coder-1.5b/run.json`).engine_version.config;
-    return { model: c.model, backend: c.backend, batching: c.batching, maxBatch: c.max_batch, blockSize: c.block_size, kvBudgetMib: c.kv_budget_mib, maxContext: c.max_context, numThreads: c.num_threads, preemption: c.preemption };
+    return { clientWorkers: json(`${R}/qwen2.5-coder-1.5b/run.json`).workers, model: c.model, backend: c.backend, batching: c.batching, maxBatch: c.max_batch, blockSize: c.block_size, kvBudgetMib: c.kv_budget_mib, maxContext: c.max_context, numThreads: c.num_threads, preemption: c.preemption };
   })(),
 };
 
@@ -175,9 +175,22 @@ const tallySection = step7.slice(step7.indexOf("**Final tallies at the stopping 
 const models = [...tallySection.matchAll(/\| `([^`]+)` \| (\d+)\/(\d+) \((complete|partial)\) \| (\d+) \|/g)].map((m) => ({
   model: m[1], attempts: Number(m[2]), planned: Number(m[3]), status: m[4], resolved: Number(m[5]),
 }));
+const gbByModel = Object.fromEntries([...step7.matchAll(/^\| `([^`]+)` \| (\d+(?:\.\d+)?)GB \|/gm)].map((m) => [m[1], Number(m[2])]));
+for (const m of models) {
+  must(gbByModel[m.model] !== undefined, `no download size for ${m.model} in the ts-bench hardware table`);
+  m.downloadGB = gbByModel[m.model];
+}
 must(models.length === 3, `expected 3 completed/partial local models in the ts-bench tally, found ${models.length}`);
 must(models.reduce((s, m) => s + m.attempts, 0) === Number(total647[2]), "per-model attempts do not sum to the stated total");
 must(models.every((m) => m.resolved === 0) && Number(total647[1]) === 0, "ts-bench local models are no longer all-zero; the story text would be wrong");
+const caveat = match1(step7, /It does not show (these models cannot solve such tasks under a different scaffold)/, "the narrow-claim caveat")[1];
+const paramsB = (name) => {
+  const m = name.match(/[:-](\d+(?:\.\d+)?)b$/);
+  return m ? Number(m[1]) : null;
+};
+const servedParamsB = paramsB(engine.model);
+must(servedParamsB !== null, "could not read the served model size from its name");
+const firstGate = match1(board, /FIRST run failed (\d+)\/(\d+)/, "the first (failed) run of the harness gate");
 const haiku = match1(step7, /Final running total: (\d+) attempts, (\d+) resolved \((\d+)%\)/, "ts-bench Haiku 4.5 result");
 const narrow = match1(step7, /The claim this data supports is narrow: \*([^*]+)\*/, "the narrow-claim sentence")[1];
 const goldenTests = Number(match1(board, /(\d+) passed in 1313\.19s/, "golden test count")[1]);
@@ -188,20 +201,44 @@ const phases = [...phaseTable.matchAll(/^\| (\d) \| (.+?) \| (.+?) \|$/gm)].map(
 must(phases.length === 7, `expected 7 phases in the board table, found ${phases.length}`);
 const facts = {
   tsBench: {
-    totalAttempts: Number(total647[2]), totalResolved: Number(total647[1]), models,
+    totalAttempts: Number(total647[2]), totalResolved: Number(total647[1]),
+    models: models.map((m) => ({ ...m, paramsB: paramsB(m.model) })), servedParamsB,
     haiku: { attempts: Number(haiku[1]), resolved: Number(haiku[2]), percent: Number(haiku[3]) },
-    narrowClaim: narrow,
+    narrowClaim: narrow, narrowClaimCaveat: caveat,
   },
+  gateFirstRun: { passed: Number(firstGate[1]), of: Number(firstGate[2]) },
   tests: { golden: goldenTests, engine: engineTests, bench: benchTests },
   phases,
 };
 
 sources["(facts parsed from bench/docs/step7-real-model-run.md and docs/agentforge-task-board.md)"] = createHash("sha256").update(JSON.stringify(facts)).digest("hex");
 
+// ---------------------------------------------------------------- how a sample is executed and scored (parsed from the code)
+const sbSrc = read("bench/humaneval/sandbox.py");
+const repSrc = read("bench/humaneval/report.py");
+const sandbox = {
+  image: match1(sbSrc, /IMAGE = "([^"]+)"/, "sandbox image")[1],
+  network: match1(sbSrc, /"--network", "(\w+)"/, "sandbox --network")[1],
+  user: match1(sbSrc, /"--user", "([^"]+)"/, "sandbox --user")[1],
+  capDrop: match1(sbSrc, /"--cap-drop", "(\w+)"/, "sandbox --cap-drop")[1],
+  tmpfs: match1(sbSrc, /"--tmpfs", "([^"]+)"/, "sandbox --tmpfs")[1],
+  memory: match1(sbSrc, /memory: str = "([^"]+)"/, "sandbox memory")[1],
+  pids: Number(match1(sbSrc, /pids: int = (\d+)/, "sandbox pids")[1]),
+  cpus: match1(sbSrc, /cpus: str = "([^"]+)"/, "sandbox cpus")[1],
+  fsizeBytes: Number(match1(sbSrc, /"fsize=(\d+)"/, "sandbox fsize")[1]),
+  readOnlyRootfs: /"--read-only"/.test(sbSrc),
+  noNewPrivileges: /"no-new-privileges"/.test(sbSrc),
+};
+must(sandbox.readOnlyRootfs && sandbox.noNewPrivileges, "sandbox source no longer sets --read-only / no-new-privileges");
+const bootstrap = {
+  draws: Number(match1(repSrc, /def bootstrap_ci\(values: list\[float\], b: int = ([\d_]+)/, "bootstrap draws")[1].replace(/_/g, "")),
+  seed: Number(match1(repSrc, /def bootstrap_ci\(values: list\[float\], b: int = [\d_]+, seed: int = (\d+)/, "bootstrap seed")[1]),
+};
+
 // ---------------------------------------------------------------- one real request, for the eval-architecture diagram
 const ex = json(`${R}/site_examples.json`);
 const slimSample = (s) => ({
-  sampleIdx: s.sample_idx, reply: s.reply, assemblyMode: s.assembly_mode, finishReason: s.finish_reason,
+  sampleIdx: s.sample_idx, seed: s.seed, reply: s.reply, assemblyMode: s.assembly_mode, finishReason: s.finish_reason,
   promptTokens: s.prompt_tokens, completionTokens: s.completion_tokens, clientLatencySeconds: s.client_latency_seconds,
   execSeconds: s.exec_seconds, passed: s.passed, outcome: s.outcome, detail: s.detail, programLines: s.program.split("\n").length,
 });
@@ -209,6 +246,7 @@ const example = {
   rule: ex.rule, run: ex.run,
   problem: { taskId: ex.problem.task_id, entryPoint: ex.problem.entry_point, prompt: ex.problem.prompt, test: ex.problem.test, passes: ex.problem.passes_out_of_n, n: ex.problem.n },
   userMessage: ex.user_message, passing: slimSample(ex.passing), failing: slimSample(ex.failing),
+  passAt1: ex.problem.passes_out_of_n / ex.problem.n, passAt3: passAtK(ex.problem.n, ex.problem.passes_out_of_n, 3),
 };
 const selfEngine = { ttftP50: eng.ttft_p50_s, tpotP50: eng.tpot_p50_s, e2eP50: eng.e2e_p50_s, e2eP99: eng.e2e_p99_s };
 
@@ -220,7 +258,7 @@ const repoUrl = execFileSync("git", ["-C", ROOT, "remote", "get-url", "origin"],
 const data = {
   meta: { generator: "web/scripts/build-data.mjs", repoUrl, dataset: cmp.arms.self_hosted_sampled.dataset_sha256, promptTemplateSha256: cmp.arms.self_hosted_sampled.prompt_template_sha256, sources },
   task: { problems: 164, harnessGate: { goldPassed: gate.gold_passed, emptyPassed: gate.empty_passed, problems: gate.n_problems, seconds: gate.seconds } },
-  arms, strips, costModel, spend, engine, engineRequestStats: selfEngine, facts, example,
+  arms, strips, costModel, spend, engine, engineRequestStats: selfEngine, facts, example, sandbox, bootstrap,
   caveats: cmp.caveats,
   trace,
 };
