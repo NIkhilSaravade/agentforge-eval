@@ -1,0 +1,102 @@
+{
+ "label": "claude-opus-5",
+ "n_problems": 164,
+ "n_samples": 492,
+ "samples_per_problem": {
+  "3": 164
+ },
+ "pass_at_k": {
+  "pass@1": {
+   "value": 0.9695121951219512,
+   "ci95": [
+    0.9390243902439024,
+    0.9939024390243902
+   ],
+   "n_problems": 164,
+   "stderr_across_problems": 0.013466226472535366,
+   "problems_solved_at_least_once": 159
+  },
+  "pass@2": {
+   "value": 0.9695121951219512,
+   "ci95": [
+    0.9390243902439024,
+    0.9939024390243902
+   ],
+   "n_problems": 164,
+   "stderr_across_problems": 0.013466226472535366,
+   "problems_solved_at_least_once": 159
+  },
+  "pass@3": {
+   "value": 0.9695121951219512,
+   "ci95": [
+    0.9390243902439024,
+    0.9939024390243902
+   ],
+   "n_problems": 164,
+   "stderr_across_problems": 0.013466226472535366,
+   "problems_solved_at_least_once": 159
+  }
+ },
+ "outcomes": {
+  "passed": 477,
+  "collection_error": 10,
+  "failed": 5
+ },
+ "assembly_modes": {
+  "full_function": 492
+ },
+ "truncated_by_max_tokens": 12,
+ "tokens": {
+  "prompt_total": 110769,
+  "completion_total": 121681,
+  "completion_mean": 247.3191056910569,
+  "completion_max": 512
+ },
+ "request_latency_s": {
+  "mean": 3.5267404471544714,
+  "p50": 3.4023,
+  "p90": 4.7472,
+  "p99": 5.5627,
+  "max": 6.0271,
+  "note": "includes time queued inside the engine behind other requests"
+ },
+ "generation_wall_seconds": 219.8,
+ "completion_tokens_per_second": 553.5987261146497,
+ "samples_per_second": 2.238398544131028,
+ "self_hosted_cost": "not computed: no --usd-per-hour supplied (no rate is assumed by default)",
+ "api_cost_usd_total": 3.59587,
+ "run": {
+  "config": {
+   "model": "claude-opus-5",
+   "label": "claude-opus-5",
+   "api_base": null,
+   "api_key": null,
+   "n": 3,
+   "temperature": 0.8,
+   "top_p": 0.95,
+   "max_tokens": 512,
+   "base_seed": 0,
+   "timeout": 1800,
+   "drop_params": false,
+   "provider": "anthropic",
+   "thinking": "disabled"
+  },
+  "dataset": {
+   "dataset": "openai/openai_humaneval",
+   "revision": "snapshots",
+   "file": "openai_humaneval/test-00000-of-00001.parquet",
+   "sha256": "2f2871a15fbc95b6c683043359f4ed8e144c5a1c4f24f25f66bc51f598dfcfb6",
+   "n_problems": 164
+  },
+  "prompt_template_sha256": "8c031589a69533dcf5ccbf272b89b05ab0b867fd79ca23fd17a0f9eb95a873c1",
+  "hardware": {
+   "cpu": "Intel(R) Core(TM) i7-14700K",
+   "logical_cpus": "28",
+   "mem_total": "16225408 kB",
+   "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39"
+  },
+  "engine_version": null,
+  "workers": 8
+ },
+ "engine_stats_last_segment": null
+}

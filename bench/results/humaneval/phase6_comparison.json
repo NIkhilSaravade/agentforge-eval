@@ -1,0 +1,452 @@
+{
+ "task": "HumanEval, 164 problems, identical prompt, sandbox and scorer for every arm",
+ "checks": {
+  "same_dataset_sha256_all_arms": true,
+  "same_prompt_template_sha256_all_arms": true,
+  "same_164_problems_all_arms": true
+ },
+ "arms": {
+  "self_hosted_sampled": {
+   "run_dir": "qwen2.5-coder-1.5b",
+   "n_samples": 1640,
+   "samples_per_problem": [
+    10
+   ],
+   "passed_samples": 1097,
+   "sample_pass_rate": 0.6689024390243903,
+   "pass_at_k": {
+    "pass@1": {
+     "value": 0.6689024390243903,
+     "ci95": [
+      0.6134146341463415,
+      0.7250000000000001
+     ],
+     "n_problems": 164
+    },
+    "pass@2": {
+     "value": 0.7673441734417344,
+     "ci95": [
+      0.7130081300813008,
+      0.8203252032520325
+     ],
+     "n_problems": 164
+    },
+    "pass@3": {
+     "value": 0.8071138211382114,
+     "ci95": [
+      0.7539126016260163,
+      0.8583333333333334
+     ],
+     "n_problems": 164
+    },
+    "pass@5": {
+     "value": 0.8427216415021294,
+     "ci95": [
+      0.7902874564459931,
+      0.8917198993418506
+     ],
+     "n_problems": 164
+    },
+    "pass@10": {
+     "value": 0.8780487804878049,
+     "ci95": [
+      0.8292682926829268,
+      0.926829268292683
+     ],
+     "n_problems": 164
+    }
+   },
+   "outcomes": {
+    "collection_error": 22,
+    "error": 5,
+    "failed": 510,
+    "passed": 1097,
+    "resource_killed": 2,
+    "timeout": 4
+   },
+   "truncated_at_max_tokens": 15,
+   "truncation_upper_bound_sample_pass_rate": 0.6780487804878049,
+   "max_tokens": 512,
+   "tokens": {
+    "prompt_total": 310330,
+    "completion_total": 271921
+   },
+   "protocol": {
+    "provider": null,
+    "model": "openai/qwen2.5-coder-1.5b",
+    "temperature": 0.8,
+    "top_p": 0.95,
+    "seed": "per-sample deterministic",
+    "thinking": "model default (n/a for the self-hosted model)"
+   },
+   "dataset_sha256": "2f2871a15fbc95b6c683043359f4ed8e144c5a1c4f24f25f66bc51f598dfcfb6",
+   "prompt_template_sha256": "8c031589a69533dcf5ccbf272b89b05ab0b867fd79ca23fd17a0f9eb95a873c1",
+   "self_hosted": {
+    "wall_seconds": 9351.8,
+    "wall_hours": 2.597722222222222,
+    "completion_tokens_per_second": 29.07686220834492,
+    "engine": {
+     "requests": 1640,
+     "output_tokens": 271921,
+     "throughput_tok_per_s": 29.076901913628987,
+     "decode_steps": 8591,
+     "peak_batch": 32,
+     "slot_utilisation": 0.983154609475032,
+     "kv_utilisation": 0.2707355242566504,
+     "kv_token_efficiency": 0.9757879958693071,
+     "attn_padding_waste": 0.371461546911322,
+     "mean_queue_depth": 7.557094633919218,
+     "preemptions": 0,
+     "rejected": 0,
+     "prefill_seconds": 1094.6183857909855,
+     "decode_seconds": 8246.163220241302,
+     "ttft_p50_s": 41.359951005993935,
+     "ttft_p99_s": 123.31421134799893,
+     "tpot_p50_s": 1.0934380725357187,
+     "tpot_p99_s": 1.6298743607978117,
+     "e2e_p50_s": 198.1024240049992,
+     "e2e_p99_s": 647.9594138210014
+    },
+    "hardware": {
+     "cpu": "Intel(R) Core(TM) i7-14700K",
+     "logical_cpus": "28",
+     "mem_total": "16225408 kB",
+     "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39"
+    }
+   }
+  },
+  "self_hosted_greedy": {
+   "run_dir": "qwen2.5-coder-1.5b-greedy",
+   "n_samples": 164,
+   "samples_per_problem": [
+    1
+   ],
+   "passed_samples": 119,
+   "sample_pass_rate": 0.725609756097561,
+   "pass_at_k": {
+    "pass@1": {
+     "value": 0.725609756097561,
+     "ci95": [
+      0.6585365853658537,
+      0.7926829268292683
+     ],
+     "n_problems": 164
+    }
+   },
+   "outcomes": {
+    "collection_error": 2,
+    "error": 1,
+    "failed": 42,
+    "passed": 119
+   },
+   "truncated_at_max_tokens": 2,
+   "truncation_upper_bound_sample_pass_rate": 0.7378048780487805,
+   "max_tokens": 512,
+   "tokens": {
+    "prompt_total": 31033,
+    "completion_total": 29645
+   },
+   "protocol": {
+    "provider": null,
+    "model": "openai/qwen2.5-coder-1.5b",
+    "temperature": 0.0,
+    "top_p": 1.0,
+    "seed": "per-sample deterministic",
+    "thinking": "model default (n/a for the self-hosted model)"
+   },
+   "dataset_sha256": "2f2871a15fbc95b6c683043359f4ed8e144c5a1c4f24f25f66bc51f598dfcfb6",
+   "prompt_template_sha256": "8c031589a69533dcf5ccbf272b89b05ab0b867fd79ca23fd17a0f9eb95a873c1",
+   "self_hosted": {
+    "wall_seconds": 1068.3,
+    "wall_hours": 0.29675,
+    "completion_tokens_per_second": 27.74969577833942,
+    "engine": {
+     "requests": 164,
+     "output_tokens": 29645,
+     "throughput_tok_per_s": 27.748745915908906,
+     "decode_steps": 1101,
+     "peak_batch": 32,
+     "slot_utilisation": 0.8367677111716622,
+     "kv_utilisation": 0.23535014788420788,
+     "kv_token_efficiency": 0.9776796496905876,
+     "attn_padding_waste": 0.4279803419900159,
+     "mean_queue_depth": 5.584014532243415,
+     "preemptions": 0,
+     "rejected": 0,
+     "prefill_seconds": 108.8703885219802,
+     "decode_seconds": 957.903120886127,
+     "ttft_p50_s": 40.27069444699737,
+     "ttft_p99_s": 101.71944677099964,
+     "tpot_p50_s": 1.0766129337062467,
+     "tpot_p99_s": 1.404311694744834,
+     "e2e_p50_s": 223.82603698050298,
+     "e2e_p99_s": 566.7599507190025
+    },
+    "hardware": {
+     "cpu": "Intel(R) Core(TM) i7-14700K",
+     "logical_cpus": "28",
+     "mem_total": "16225408 kB",
+     "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39"
+    }
+   }
+  },
+  "haiku_4_5": {
+   "run_dir": "claude-haiku-4-5",
+   "n_samples": 1640,
+   "samples_per_problem": [
+    10
+   ],
+   "passed_samples": 1521,
+   "sample_pass_rate": 0.927439024390244,
+   "pass_at_k": {
+    "pass@1": {
+     "value": 0.9274390243902438,
+     "ci95": [
+      0.8890243902439026,
+      0.9609756097560975
+     ],
+     "n_problems": 164
+    },
+    "pass@2": {
+     "value": 0.938888888888889,
+     "ci95": [
+      0.9021680216802168,
+      0.9705962059620596
+     ],
+     "n_problems": 164
+    },
+    "pass@3": {
+     "value": 0.9429878048780488,
+     "ci95": [
+      0.9071138211382115,
+      0.9735772357723577
+     ],
+     "n_problems": 164
+    },
+    "pass@5": {
+     "value": 0.9480013550135502,
+     "ci95": [
+      0.9143437862950059,
+      0.9780778164924506
+     ],
+     "n_problems": 164
+    },
+    "pass@10": {
+     "value": 0.9573170731707317,
+     "ci95": [
+      0.926829268292683,
+      0.9878048780487805
+     ],
+     "n_problems": 164
+    }
+   },
+   "outcomes": {
+    "collection_error": 48,
+    "failed": 71,
+    "passed": 1521
+   },
+   "truncated_at_max_tokens": 74,
+   "truncation_upper_bound_sample_pass_rate": 0.9707317073170731,
+   "max_tokens": 512,
+   "tokens": {
+    "prompt_total": 301930,
+    "completion_total": 400553
+   },
+   "protocol": {
+    "provider": "anthropic",
+    "model": "claude-haiku-4-5",
+    "temperature": "API default (not sent)",
+    "top_p": "API default (not sent)",
+    "seed": "none (API has no seed)",
+    "thinking": "model default (n/a for the self-hosted model)"
+   },
+   "dataset_sha256": "2f2871a15fbc95b6c683043359f4ed8e144c5a1c4f24f25f66bc51f598dfcfb6",
+   "prompt_template_sha256": "8c031589a69533dcf5ccbf272b89b05ab0b867fd79ca23fd17a0f9eb95a873c1",
+   "api_cost": {
+    "usd_total": 2.304695,
+    "usd_per_sample": 0.0014053018292682928,
+    "usd_per_expected_solved_sample": 0.0015152498356344512,
+    "note": "computed from response.usage x the live price table (humaneval/spend.py)"
+   }
+  },
+  "opus_5": {
+   "run_dir": "claude-opus-5",
+   "n_samples": 492,
+   "samples_per_problem": [
+    3
+   ],
+   "passed_samples": 477,
+   "sample_pass_rate": 0.9695121951219512,
+   "pass_at_k": {
+    "pass@1": {
+     "value": 0.9695121951219512,
+     "ci95": [
+      0.9390243902439024,
+      0.9939024390243902
+     ],
+     "n_problems": 164
+    },
+    "pass@2": {
+     "value": 0.9695121951219512,
+     "ci95": [
+      0.9390243902439024,
+      0.9939024390243902
+     ],
+     "n_problems": 164
+    },
+    "pass@3": {
+     "value": 0.9695121951219512,
+     "ci95": [
+      0.9390243902439024,
+      0.9939024390243902
+     ],
+     "n_problems": 164
+    }
+   },
+   "outcomes": {
+    "collection_error": 10,
+    "failed": 5,
+    "passed": 477
+   },
+   "truncated_at_max_tokens": 12,
+   "truncation_upper_bound_sample_pass_rate": 0.9939024390243902,
+   "max_tokens": 512,
+   "tokens": {
+    "prompt_total": 110769,
+    "completion_total": 121681
+   },
+   "protocol": {
+    "provider": "anthropic",
+    "model": "claude-opus-5",
+    "temperature": "API default (not sent)",
+    "top_p": "API default (not sent)",
+    "seed": "none (API has no seed)",
+    "thinking": "disabled"
+   },
+   "dataset_sha256": "2f2871a15fbc95b6c683043359f4ed8e144c5a1c4f24f25f66bc51f598dfcfb6",
+   "prompt_template_sha256": "8c031589a69533dcf5ccbf272b89b05ab0b867fd79ca23fd17a0f9eb95a873c1",
+   "api_cost": {
+    "usd_total": 3.59587,
+    "usd_per_sample": 0.007308678861788618,
+    "usd_per_expected_solved_sample": 0.007538511530398323,
+    "note": "computed from response.usage x the live price table (humaneval/spend.py)"
+   }
+  }
+ },
+ "comparison_at_common_k": {
+  "pass@1": {
+   "self_hosted_sampled": {
+    "value": 0.6689024390243903,
+    "ci95": [
+     0.6134146341463415,
+     0.7250000000000001
+    ],
+    "n_problems": 164
+   },
+   "self_hosted_greedy": {
+    "value": 0.725609756097561,
+    "ci95": [
+     0.6585365853658537,
+     0.7926829268292683
+    ],
+    "n_problems": 164
+   },
+   "haiku_4_5": {
+    "value": 0.9274390243902438,
+    "ci95": [
+     0.8890243902439026,
+     0.9609756097560975
+    ],
+    "n_problems": 164
+   },
+   "opus_5": {
+    "value": 0.9695121951219512,
+    "ci95": [
+     0.9390243902439024,
+     0.9939024390243902
+    ],
+    "n_problems": 164
+   }
+  },
+  "pass@2": {
+   "self_hosted_sampled": {
+    "value": 0.7673441734417344,
+    "ci95": [
+     0.7130081300813008,
+     0.8203252032520325
+    ],
+    "n_problems": 164
+   },
+   "self_hosted_greedy": null,
+   "haiku_4_5": {
+    "value": 0.938888888888889,
+    "ci95": [
+     0.9021680216802168,
+     0.9705962059620596
+    ],
+    "n_problems": 164
+   },
+   "opus_5": {
+    "value": 0.9695121951219512,
+    "ci95": [
+     0.9390243902439024,
+     0.9939024390243902
+    ],
+    "n_problems": 164
+   }
+  },
+  "pass@3": {
+   "self_hosted_sampled": {
+    "value": 0.8071138211382114,
+    "ci95": [
+     0.7539126016260163,
+     0.8583333333333334
+    ],
+    "n_problems": 164
+   },
+   "self_hosted_greedy": null,
+   "haiku_4_5": {
+    "value": 0.9429878048780488,
+    "ci95": [
+     0.9071138211382115,
+     0.9735772357723577
+    ],
+    "n_problems": 164
+   },
+   "opus_5": {
+    "value": 0.9695121951219512,
+    "ci95": [
+     0.9390243902439024,
+     0.9939024390243902
+    ],
+    "n_problems": 164
+   }
+  }
+ },
+ "break_even_self_hosting_rate": {
+  "haiku_4_5": {
+   "hosted_cost_for_1640_samples_usd": 2.304695,
+   "usd_per_hour_below_which_selfhosting_is_cheaper_per_sample": 0.8871984003079623,
+   "usd_per_hour_below_which_selfhosting_is_cheaper_per_solved_sample": 0.6398794511096875
+  },
+  "opus_5": {
+   "hosted_cost_for_1640_samples_usd": 11.986233333333333,
+   "usd_per_hour_below_which_selfhosting_is_cheaper_per_sample": 4.614132038751898,
+   "usd_per_hour_below_which_selfhosting_is_cheaper_per_solved_sample": 3.1834609097552407
+  }
+ },
+ "total_hosted_spend_usd_including_pilots": 6.064139,
+ "budget": {
+  "user_funded_usd": 6.8,
+  "hard_cap_usd": 6.5
+ },
+ "caveats": [
+  "Sampling differs by design: the self-hosted arm samples at T=0.8, top_p=0.95 (seeded); the hosted arms use the API's default sampling because Opus 5 / Sonnet 5 reject temperature/top_p. Hosted runs are not seed-reproducible; scoring is reproducible from the saved completions.",
+  "Sample counts differ: 10 per problem (self-hosted, Haiku) vs 3 (Opus 5, budget). Compare at common k (1-3); pass@k from n=10 is the unbiased estimator, from n=3 it is the plain fraction solved in 3 draws.",
+  "max_tokens=512 for every arm (the self-hosted protocol). It truncated 15/1640 self-hosted, 74/1640 Haiku and 12/492 Opus samples, every truncated sample that ran failed except a few Haiku ones; see truncation_upper_bound_sample_pass_rate for the most the cap could be costing each arm.",
+  "Opus 5 ran with thinking disabled (cost); default adaptive thinking was measured on only 2 calls and projected over the cap.",
+  "HumanEval is public and very likely in every model's training data; absolute scores overstate real-world ability for all arms.",
+  "pass@k CIs are problem-level bootstrap (the sampling unit for 'a different set of problems'); they do not include seed-to-seed variance.",
+  "The self-hosted machine has no dollar cost here: no hourly rate was supplied. break_even_self_hosting_rate is the rate-free comparison."
+ ]
+}

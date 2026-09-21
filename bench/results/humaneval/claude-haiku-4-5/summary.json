@@ -1,0 +1,123 @@
+{
+ "label": "claude-haiku-4-5",
+ "n_problems": 164,
+ "n_samples": 1640,
+ "samples_per_problem": {
+  "10": 164
+ },
+ "pass_at_k": {
+  "pass@1": {
+   "value": 0.9274390243902438,
+   "ci95": [
+    0.8890243902439026,
+    0.9609756097560975
+   ],
+   "n_problems": 164,
+   "stderr_across_problems": 0.01869861094862921,
+   "problems_solved_at_least_once": 157
+  },
+  "pass@2": {
+   "value": 0.938888888888889,
+   "ci95": [
+    0.9021680216802168,
+    0.9705962059620596
+   ],
+   "n_problems": 164,
+   "stderr_across_problems": 0.017799726047762976,
+   "problems_solved_at_least_once": 157
+  },
+  "pass@3": {
+   "value": 0.9429878048780488,
+   "ci95": [
+    0.9071138211382115,
+    0.9735772357723577
+   ],
+   "n_problems": 164,
+   "stderr_across_problems": 0.01726865878714232,
+   "problems_solved_at_least_once": 157
+  },
+  "pass@5": {
+   "value": 0.9480013550135502,
+   "ci95": [
+    0.9143437862950059,
+    0.9780778164924506
+   ],
+   "n_problems": 164,
+   "stderr_across_problems": 0.016533251708699192,
+   "problems_solved_at_least_once": 157
+  },
+  "pass@10": {
+   "value": 0.9573170731707317,
+   "ci95": [
+    0.926829268292683,
+    0.9878048780487805
+   ],
+   "n_problems": 164,
+   "stderr_across_problems": 0.0158329265103047,
+   "problems_solved_at_least_once": 157
+  }
+ },
+ "outcomes": {
+  "passed": 1521,
+  "failed": 71,
+  "collection_error": 48
+ },
+ "assembly_modes": {
+  "full_function": 1629,
+  "body_only": 11
+ },
+ "truncated_by_max_tokens": 74,
+ "tokens": {
+  "prompt_total": 301930,
+  "completion_total": 400553,
+  "completion_mean": 244.23963414634147,
+  "completion_max": 512
+ },
+ "request_latency_s": {
+  "mean": 1.7231791463414634,
+  "p50": 1.5691,
+  "p90": 2.6228,
+  "p99": 3.9243,
+  "max": 6.3573,
+  "note": "includes time queued inside the engine behind other requests"
+ },
+ "generation_wall_seconds": 354.0,
+ "completion_tokens_per_second": 1131.5056497175142,
+ "samples_per_second": 4.632768361581921,
+ "self_hosted_cost": "not computed: no --usd-per-hour supplied (no rate is assumed by default)",
+ "api_cost_usd_total": 2.304695,
+ "run": {
+  "config": {
+   "model": "claude-haiku-4-5",
+   "label": "claude-haiku-4-5",
+   "api_base": null,
+   "api_key": null,
+   "n": 10,
+   "temperature": 0.8,
+   "top_p": 0.95,
+   "max_tokens": 512,
+   "base_seed": 0,
+   "timeout": 1800,
+   "drop_params": false,
+   "provider": "anthropic",
+   "thinking": null
+  },
+  "dataset": {
+   "dataset": "openai/openai_humaneval",
+   "revision": "snapshots",
+   "file": "openai_humaneval/test-00000-of-00001.parquet",
+   "sha256": "2f2871a15fbc95b6c683043359f4ed8e144c5a1c4f24f25f66bc51f598dfcfb6",
+   "n_problems": 164
+  },
+  "prompt_template_sha256": "8c031589a69533dcf5ccbf272b89b05ab0b867fd79ca23fd17a0f9eb95a873c1",
+  "hardware": {
+   "cpu": "Intel(R) Core(TM) i7-14700K",
+   "logical_cpus": "28",
+   "mem_total": "16225408 kB",
+   "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39"
+  },
+  "engine_version": null,
+  "workers": 8
+ },
+ "engine_stats_last_segment": null
+}

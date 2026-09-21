@@ -13,7 +13,7 @@ swap needs confirmation); negative results are published with root cause.
 | 3 | Golden test for the new model (Qwen2.5-Coder-0.5B) | DONE (2026-09-21) |
 | 4 | Real sampling (temperature + top-p, seedable) in the engine | DONE (2026-09-21) |
 | 5 | HumanEval harness: generate k, test, pass@k against the self-hosted model | DONE (2026-09-22) |
-| 6 | Budget experiment: same 164 problems, same k, frontier anchor (needs explicit spend approval) | PROPOSAL WRITTEN, AWAITING APPROVAL (no spend) |
+| 6 | Budget experiment: same 164 problems, same k, frontier anchor (needs explicit spend approval) | DONE (2026-09-22), $6.06 spent of $6.50 cap |
 | 7 | Write-up | NOT STARTED (was Phase 6) |
 
 ---
@@ -546,3 +546,79 @@ arm, and this break-even hourly rate. If you give me an hourly rate (cloud-equiv
 4. Accept the sampling-parameter asymmetry (hosted arms at API-default sampling)?
 5. An hourly rate for the self-hosted machine, or accept the break-even presentation?
 6. Confirm an `ANTHROPIC_API_KEY` (or `ant auth login` profile) is available in this environment; I will check without printing it and ask if absent.
+
+---
+
+## Phase 6 — Budget experiment (DONE 2026-09-22): real hosted runs, real spend
+
+Done-when: a results file with real, reproducible pass@k and cost numbers for both the self-hosted model and the frontier anchor exists, on the same task set.
+**Results file: `bench/results/humaneval/phase6_comparison.json`** (every number recomputed from saved per-sample results by `python -m humaneval.compare`; nothing typed by hand).
+
+### Approval and scope actually executed (user decisions, 2026-09-22)
+- The user chose **Option C** (Haiku 4.5 at n=10 + Opus 5 at reduced n) and funded **$6.80** (not the $10 mentioned earlier), so I set the hard cap to **$6.50** with a project-wide spend ledger.
+- **Total spent: $6.0641** (Haiku full run $2.3047, Opus full run $3.5959, three pilots $0.1636). Under the cap and under the funded balance.
+- Changes forced by measurement, all inside the approved option: Opus 5 ran at **n=3** (the plan was n=3, first executed as n=2, then the third pass added once the measured cost showed it fit); **thinking disabled**
+  for Opus (default thinking measured on only 2 calls at $0.0091/call, projecting a total over the cap); refusal fallbacks deliberately NOT enabled (a fallback would silently substitute a different model into the anchor).
+- Hosted arms call the **official Anthropic SDK** (`anthropic` 1.7.0, added to bench's `pyproject.toml`/`uv.lock`), not LiteLLM: LiteLLM's model map can lag new models' parameter rules. No `temperature`/`top_p`/`seed` are sent
+  (Opus 5 / Sonnet 5 reject them; hosted arms therefore use the API's default sampling).
+
+### Results (same 164 problems, same prompt sha256, same sandbox and scorer; checks asserted in the file)
+pass@k with 95% problem-level bootstrap CIs:
+
+| arm | samples | pass@1 | pass@3 | pass@10 |
+|---|---|---|---|---|
+| Self-hosted Qwen2.5-Coder-1.5B, sampled (T=0.8, top_p=0.95) | 1,640 (n=10) | **66.89%** [61.3, 72.5] | **80.71%** [75.4, 85.8] | **87.80%** [82.9, 92.7] |
+| Self-hosted Qwen2.5-Coder-1.5B, greedy | 164 (n=1) | **72.56%** [65.9, 79.3] | n/a | n/a |
+| Claude Haiku 4.5 | 1,640 (n=10) | **92.74%** [88.9, 96.1] | **94.30%** [90.7, 97.4] | **95.73%** |
+| Claude Opus 5 (thinking off) | 492 (n=3) | **96.95%** [93.9, 99.4] | **96.95%** [93.9, 99.4] | not measured (n=3) |
+
+The self-hosted model is **25.9 points behind Haiku 4.5 and 30.1 points behind Opus 5 at pass@1**, and stays behind at pass@3 (80.7 vs 94.3 vs 97.0). This is the honest headline: on function-level Python the self-hosted 1.5B model is
+clearly worse than even the cheapest hosted model. Opus 5's failures are all-or-nothing per problem (pass@1 = pass@2 = pass@3), so at n=3 its higher-k numbers carry no extra information.
+
+### Cost and speed (measured)
+| arm | cost | per sample | per expected-solved sample | wall-clock |
+|---|---|---|---|---|
+| Haiku 4.5 (1,640 samples) | **$2.3047** | $0.001405 | $0.001515 | 354 s (0.22 s/sample, 8 workers) |
+| Opus 5 (492 samples) | **$3.5959** | $0.007309 | $0.007539 | ~220 s |
+| Self-hosted (1,640 samples) | **no dollar figure: no hourly rate supplied** | n/a | n/a | 9,352 s (2.6 h) |
+
+Hosted generation was ~26x (Haiku) and ~13x (Opus) faster than the self-hosted CPU run for the same sample count, at the concurrency used.
+**Break-even hourly rate for the self-hosted machine** (below this rate, self-hosting the same 1,640 samples costs less than the hosted API), from the measured 2.598 h:
+- vs Haiku 4.5: **$0.89/h per sample**, **$0.64/h per solved sample** (hosted cost for 1,640 samples $2.30).
+- vs Opus 5: **$4.61/h per sample**, **$3.18/h per solved sample** (hosted equivalent for 1,640 samples $11.99, extrapolated from the measured $0.007309/sample).
+So self-hosting on this CPU is cheaper than Haiku only if the machine costs under ~$0.89/h all-in (e.g. hardware you already own and marginal electricity), and cheaper than Opus 5 if under ~$4.61/h. It is never better in quality.
+Where self-hosting genuinely helps: no per-token bill, no data leaving the machine, and the engine's batching (decode 0.10 s/step alone vs 0.25 s/step at batch 16 for the 1.5B, measured in Phase 5) is what makes 2.6 h possible at all.
+It does not win on cost-per-solved-problem against Haiku unless the hardware is nearly free.
+
+### Truncation caveat (the 512-token cap, applied to every arm to keep the protocol identical)
+| arm | samples cut at 512 tokens | passed among them | most the cap could be costing (upper bound on sample pass rate) |
+|---|---|---|---|
+| Self-hosted | 15 / 1,640 | 0 | 67.8% (vs 66.9% measured) |
+| Haiku 4.5 | 74 / 1,640 | 3 | 97.1% (vs 92.7%) |
+| Opus 5 | 12 / 492 | 0 | 99.4% (vs 96.95%) |
+Hosted models are more verbose, so the cap penalizes them more. Four of Opus 5's five failing problems (68, 81, 109, 124) are truncations; only HumanEval/103 is a genuine failure. **The ranking cannot change**
+(even the upper bounds leave the self-hosted arm 30 points behind), but the hosted scores are understated. A rerun of just the truncated hosted samples at a larger cap would cost roughly $0.6, which would exceed the $6.50 cap, so it was not done.
+
+### Methodology differences that must accompany any use of these numbers
+1. Sampling differs by design (self-hosted T=0.8/top_p=0.95 seeded; hosted at the API's default). 2. Hosted runs are not seed-reproducible: SCORING is reproducible from the saved completions, regenerating gives different samples.
+3. Sample counts differ (10, 10, 3): compare at k <= 3; n=3 pass@k is a plain fraction, n=10 is the unbiased estimator. 4. Opus 5 thinking off; default thinking was measured on 2 calls only ($0.0091/call, one call used an adaptive thinking block).
+5. HumanEval is public and very likely in every model's training data; absolute scores overstate real-world ability for all arms. 6. CIs resample problems, not seeds.
+
+### Pilots (real calls, evidence for decisions)
+Haiku 20 calls $0.0211 (20/20 pass, 152 input / 180 output tokens per call); Opus 5 thinking off 20 calls $0.1454 (20/20 pass, $0.00622/call, 192 in / 210 out); Opus 5 default thinking, HumanEval/32 and /50, 2 calls $0.0182 (one used a thinking block; 517 vs 95 output tokens).
+The pilots' first 10 problems are easier than average, so pilot per-call costs understated the full runs by ~33% (Haiku $0.00105 -> $0.001405). That is why Opus was first run at n=2 and the third pass added only after the measured cost showed it fit.
+
+### Problems hit
+- Pilot cost projections were optimistic (see above); handled by staging the Opus run instead of trusting the projection.
+- A test of my own breaker had a float-boundary mistake (0.005 + 0.045 landed just under 0.05); fixed the test, the breaker was right.
+- Process: none that affected results. The API key was read from `bench/.env` (gitignored, untracked); a scan of every results file, source file and test for the key prefix found nothing.
+
+### Done-when check (actual output)
+```
+$ python -m humaneval generate --provider anthropic (Haiku)   -> completed 1640, errors 0, 354.0 s, ledger $2.4683
+$ python -m humaneval generate --provider anthropic (Opus n=2) -> completed 328, errors 0, 145.8 s, ledger $4.8640
+$ python -m humaneval generate --provider anthropic (Opus n=3) -> completed 164 (+328 done), errors 0, 74.0 s, ledger $6.0641 of $6.50
+$ python -m humaneval.compare  -> pass@1 self 66.89 | greedy 72.56 | haiku 92.74 | opus 96.95 ; break-even $/h: haiku 0.89, opus 4.61 ; spend $6.0641
+$ bench: pytest                 -> 79 passed in 37.75 s (69 prior + 10 new: cost formula, ledger, breaker, request shape, no key stored)
+```
+The engine suite was not re-run: no engine code changed in Phase 6 (last full pass: 354 passed).

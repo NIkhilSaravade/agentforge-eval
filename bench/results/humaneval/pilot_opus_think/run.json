@@ -1,0 +1,50 @@
+{
+ "segments": [
+  {
+   "started_at": 1790010841.5653317,
+   "wall_seconds": 6.0,
+   "requested": 2,
+   "completed": 2,
+   "errors": 0,
+   "engine_stats": null
+  }
+ ],
+ "label": "claude-opus-5-thinking",
+ "config": {
+  "model": "claude-opus-5",
+  "label": "claude-opus-5-thinking",
+  "api_base": null,
+  "api_key": null,
+  "n": 1,
+  "temperature": 0.8,
+  "top_p": 0.95,
+  "max_tokens": 4000,
+  "base_seed": 0,
+  "timeout": 1800,
+  "drop_params": false,
+  "provider": "anthropic",
+  "thinking": null
+ },
+ "dataset": {
+  "dataset": "openai/openai_humaneval",
+  "revision": "snapshots",
+  "file": "openai_humaneval/test-00000-of-00001.parquet",
+  "sha256": "2f2871a15fbc95b6c683043359f4ed8e144c5a1c4f24f25f66bc51f598dfcfb6",
+  "n_problems": 164
+ },
+ "prompt_template_sha256": "8c031589a69533dcf5ccbf272b89b05ab0b867fd79ca23fd17a0f9eb95a873c1",
+ "prompt_template": "Complete the following Python function. Reply with the complete function implementation in a single ```python code block and nothing else.\n\n```python\n{prompt}\n```",
+ "problems_selected": [
+  "HumanEval/32",
+  "HumanEval/50"
+ ],
+ "workers": 2,
+ "hardware": {
+  "cpu": "Intel(R) Core(TM) i7-14700K",
+  "logical_cpus": "28",
+  "mem_total": "16225408 kB",
+  "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39"
+ },
+ "engine_version": null,
+ "errors": []
+}

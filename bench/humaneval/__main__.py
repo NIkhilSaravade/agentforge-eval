@@ -25,6 +25,7 @@ from humaneval.generate import GenConfig, run_generation
 from humaneval.program import PROMPT_TEMPLATE, assemble_program, extract_code
 from humaneval.report import summarize
 from humaneval.sandbox import PythonDockerSandbox
+from humaneval.spend import SpendGuard
 
 
 def _select(problems, spec: str | None):
@@ -67,11 +68,16 @@ def cmd_generate(a) -> None:
     d.mkdir(parents=True, exist_ok=True)
     cfg = GenConfig(model=a.model, label=a.label, api_base=a.api_base, api_key=a.api_key, n=a.n,
                     temperature=a.temperature, top_p=a.top_p, max_tokens=a.max_tokens, base_seed=a.seed,
-                    drop_params=a.drop_params)
+                    drop_params=a.drop_params, provider=a.provider, thinking=a.thinking)
+    guard = None
+    if a.provider == "anthropic":
+        guard = SpendGuard(a.budget_cap_usd, reserve_usd=a.reserve_usd)
+        print(f"[spend] project ledger total ${guard.spent:.4f}; cap ${a.budget_cap_usd:.2f}; "
+              f"reserve ${a.reserve_usd:.2f}; tripped={guard.tripped}", flush=True)
     if a.engine_url:
         _engine_get(a.engine_url, "/stats/reset", "POST")     # engine counters cover exactly this run
     t0 = time.time()
-    res = run_generation(cfg, problems, d / "completions.jsonl", a.workers)
+    res = run_generation(cfg, problems, d / "completions.jsonl", a.workers, guard=guard)
     meta_path = d / "run.json"
     meta = json.loads(meta_path.read_text()) if meta_path.exists() else {"segments": []}
     meta.update({
@@ -86,6 +92,8 @@ def cmd_generate(a) -> None:
     meta["errors"] = meta.get("errors_detail", []) + res["errors"]
     meta_path.write_text(json.dumps(meta, indent=1) + "\n")
     print(json.dumps({k: v for k, v in res.items() if k != "errors"}), f"errors={len(res['errors'])}")
+    if guard is not None:
+        print(f"[spend] project ledger total now ${guard.spent:.4f} of ${a.budget_cap_usd:.2f}", flush=True)
     if res["errors"]:
         print("first errors:", json.dumps(res["errors"][:3], indent=1))
         raise SystemExit(1)
@@ -148,6 +156,11 @@ def main() -> None:
     g.add_argument("--seed", type=int, default=0)
     g.add_argument("--workers", type=int, default=16)
     g.add_argument("--drop-params", action="store_true")
+    g.add_argument("--provider", choices=["litellm", "anthropic"], default="litellm")
+    g.add_argument("--thinking", choices=["disabled"], default=None,
+                   help="anthropic only: send thinking={type: disabled}; omit for the model's default")
+    g.add_argument("--budget-cap-usd", type=float, default=6.50, help="project-wide hard cap for hosted spend")
+    g.add_argument("--reserve-usd", type=float, default=0.05, help="held back for requests in flight")
     g.set_defaults(fn=cmd_generate)
     e = sub.add_parser("execute")
     e.add_argument("--dir", required=True)
