@@ -662,7 +662,7 @@ Rules inherited from the project: every number traces to a file; the negative re
 
 | Phase | What | Status |
 |---|---|---|
-| W1 | Scaffold, data pipeline (`web/scripts/build-data.mjs` -> `web/src/data.json`), data tests | NOT STARTED |
+| W1 | Scaffold, data pipeline (`web/scripts/build-data.mjs` -> `web/src/data.json`), data tests | DONE (2026-09-22) |
 | W2 | Real scheduler trace recorded from the actual engine + the animated engine diagram | NOT STARTED |
 | W3 | Opening, pivot story, eval-architecture trace (a real request's path) | NOT STARTED |
 | W4 | Results: table, CI chart, per-problem strips, break-even chart, caveats at equal weight | NOT STARTED |
@@ -684,3 +684,27 @@ Rules inherited from the project: every number traces to a file; the negative re
 ## Correction found while planning (fixed in `README.md`)
 The README said codestral scored "about 0/240". The source doc (`bench/docs/step7-real-model-run.md`) says codestral completed 240/240 with 0 resolved (240 + 240 + 167 = 647), and states the claim is narrow: one plain bash-loop scaffold, a 24-instance set,
 no evidence about other scaffolds. README corrected; the site uses the doc's wording.
+
+## W1 — Scaffold and data pipeline (DONE 2026-09-22)
+
+### Built
+- `web/` standalone project: React 19, Motion 13, Vite 8, TypeScript (strict), vitest, fontsource (Newsreader, IBM Plex Mono, self-hosted), Playwright for screenshots. `package.json`, `tsconfig.json`, `vite.config.ts`.
+- `bench/humaneval/export_examples.py` -> `bench/results/humaneval/site_examples.json`: one real problem's real samples for the eval-architecture diagram. Selection rule is fixed and stated in the file (not a hand pick): the lowest-index problem in the
+  self-hosted sampled run with 4 to 7 passes out of 10, then its lowest-index passing and failing samples. It picked **HumanEval/6** (`parse_nested_parens`, 7/10 pass; passing sample 0, failing sample 1 with a real assertion diff).
+- `web/scripts/build-data.mjs` -> `web/src/data.json` (72 KB, deterministic, no timestamps). Reads 14 result files (sha256 of each is recorded in `meta.sources`). Numbers that exist only in prose are parsed with regexes that throw if the text
+  changes: the ts-bench evidence (0 of 647; per-model 240/240, 240/240, 167/240; Haiku 6 of 20; the doc's own "narrow claim" sentence), the test counts (162 / 354 / 79), and the phase table.
+- Independent cross-checks that fail the build: per-problem counts recomputed into pass@1/pass@3/pass@10 must equal the reported values (1e-9); break-even must satisfy hours x rate = hosted cost; the spend ledger must sum to the reported total;
+  per-model attempts must sum to 647.
+- `web/tests/data.test.ts`, 14 tests: regeneration is byte-identical; each arm's pass@1 and CI equals the task board's Phase 6 table; pass@3 equals the board's; cost lines equal the board's; break-even equals the board's; every README pass@k cell equals
+  data.json's; all arms have 164 problems; the self-hosted CI does not overlap Haiku's.
+
+### Problems hit
+- `npm install` failed with `npm error No workspaces found!`. Root cause: the user-level `~/.npmrc` contains `workspaces=true`, which forces workspace mode on every npm command. This is very probably the real cause of the npm
+  "No workspaces found!" errors bench's `step7-real-model-run.md` (Bug #6 and Bug #8) investigated at length; I did not test that. I did NOT edit `~/.npmrc`; I set `npm_config_workspaces=false` per command. Worth the user's attention: removing that line would fix `npm` everywhere.
+- My first test matched the wrong board row (a cost-estimate row from the Phase 6 proposal with the same arm name); fixed by requiring an actual percentage cell.
+
+### Check (actual output)
+```
+$ node scripts/build-data.mjs   -> wrote src/data.json (14 source files hashed; scheduler trace not present yet)
+$ vitest run                    -> Test Files 1 passed | Tests 14 passed
+```
