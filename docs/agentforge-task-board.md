@@ -11,7 +11,7 @@ swap needs confirmation); negative results are published with root cause.
 | 1 | OpenAI-compatible `/v1/chat/completions` on the engine | DONE (2026-09-21) |
 | 2 | Model capability decision (STOP, needs confirmation) | DONE (confirmed 2026-09-21) |
 | 3 | Golden test for the new model (Qwen2.5-Coder-0.5B) | DONE (2026-09-21) |
-| 4 | Real sampling (temperature + top-p, seedable) in the engine | NOT STARTED (new) |
+| 4 | Real sampling (temperature + top-p, seedable) in the engine | DONE (2026-09-21) |
 | 5 | HumanEval harness: generate k, test, pass@k against the self-hosted model | NOT STARTED (replaces old Phase 4) |
 | 6 | Budget experiment: same 164 problems, same k, frontier anchor (needs explicit spend approval) | NOT STARTED (replaces old Phase 5) |
 | 7 | Write-up | NOT STARTED (was Phase 6) |
@@ -315,3 +315,64 @@ preemption-and-recompute, EOS stop, GQA spec. No tolerance, exact token-id equal
 - The 1.5B agent prompt fixture does not exercise EOS (only `chat_ok_eos_out64` does).
 - The full engine suite was not re-run after this change (only the golden file changed since the 231-pass run).
 - Serving-model choice for Phase 5 (0.5B vs 1.5B) is still undecided; that is the user's call.
+
+---
+
+## Serving-model decision (user, 2026-09-21)
+
+**The 1.5B (Qwen2.5-Coder-1.5B-Instruct) is the served model for Phase 5 and Phase 6.** The 0.5B is used only for fast
+wiring/smoke tests of the HumanEval harness before the full 164-problem run on the 1.5B. Both are golden-verified.
+After Phase 5, stop and present the Phase 6 budget proposal; no spend before explicit approval.
+
+---
+
+## Phase 4 — Seeded temperature + top-p sampling (DONE 2026-09-21)
+
+Done-when: sampled generation works, greedy path's existing golden tests still pass unchanged, a fixed-seed
+reproducibility test passes.
+
+### Built
+- `engine/engine/sampling.py`: `Sampler(temperature, top_p, seed)` (own `torch.Generator`, nucleus filtering keeps the
+  smallest prefix reaching top_p and always the top token; unseeded requests get a concrete random seed so they can be
+  replayed) and `pick_tokens(logits, samplers)`. With no samplers, or a row with `None`, it is exactly the old
+  `torch.argmax(logits, dim=-1)`, so the greedy path is the same code as before, not a re-implementation.
+- Wiring: `Request.sampler`, `step_tokens(..., samplers=None)` in both `ModelRunner` (GPT-2) and `Qwen2Runner`,
+  scheduler `_prefill`/`_decode`, `Engine.generate_batch(..., samplers=None)`. Greedy and sampled requests can share
+  a batch. The generator state lives on the request, so it survives preemption-and-recompute.
+- API (`engine/engine/api.py`): `/generate` and `/v1/chat/completions` take `temperature`, `top_p`, `seed`.
+  temperature absent or 0 = greedy; > 0 samples; invalid values (top_p outside (0,1], negative temperature) are a 400,
+  not a silent fallback. `/generate` returns the `seed` used so an unseeded run can be replayed. This replaces Phase 1's
+  "sampling knobs are accepted and ignored" behaviour.
+- `engine/tests/test_sampling.py` (24 tests): sampler unit tests (empirical distribution within 4 sigma, temperature
+  reshaping, top-p truncation, validation, replayable unseeded seed); `pick_tokens` greedy rows exact; greedy golden
+  unchanged when neighbours sample (GPT-2 and both Qwen models); same seed => same output; different seed differs;
+  sampled != greedy; same draws across contiguous vs paged backends and with different batch neighbours; determinism
+  through forced preemption; API-level seed echo/replay, streaming == non-streaming, 400s.
+- `engine/tests/test_openai_api.py`: replaced the obsolete "accepted but greedy" test with temperature 0 == greedy and
+  seed reproducibility.
+
+### Problems hit
+- None in the implementation (all sampling tests passed on the first run). Two test-hygiene fixes before trusting them:
+  a sloppy `... or ...` assertion and a tautology-prone leftover were tightened; and Qwen-level sampling tests were
+  added because the first draft only exercised GPT-2, and the Qwen models are what will be served.
+- Process slip: I first launched the full-suite run in a way that discarded its output; killed it and re-ran it with
+  output captured. The number below is from the captured run.
+
+### Limitation (also in `sampling.py`)
+Same-seed equality is pinned under the tested scheduling conditions (same backend, other backends, different batch
+neighbours, preemption), but is not proven in general: batch composition can change the low bits of the logits, which
+could flip a draw that lands exactly on a probability boundary. Greedy exactness across batchings is separately pinned
+by the golden tests. Sampling is intended for short independent generations; it is not restricted to them in code.
+M1 `generate_cached` remains greedy-only (test/reference path).
+
+### Done-when check (actual output)
+```
+$ pytest tests/test_sampling.py -q
+24 passed in 84.05s
+
+$ pytest -m 'not perf' -q          # full engine suite
+341 passed, 1 deselected, 2 warnings in 1533.18s (0:25:33)
+```
+341 = 155 (GPT-2 golden/paged/preemption/ops + chat endpoint, unchanged) + 162 (Qwen 0.5B + 1.5B golden) + 24 (sampling).
+`git diff c84a046 HEAD` shows `test_golden.py`, `test_paged.py`, `test_preemption.py`, `test_ops.py`, `conftest.py` and
+the GPT-2 fixtures are untouched since the baseline commit. The deselected test is the noisy perf guard.
