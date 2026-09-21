@@ -1,0 +1,119 @@
+{
+ "label": "qwen2.5-coder-1.5b-greedy",
+ "n_problems": 164,
+ "n_samples": 164,
+ "samples_per_problem": {
+  "1": 164
+ },
+ "pass_at_k": {
+  "pass@1": {
+   "value": 0.725609756097561,
+   "ci95": [
+    0.6585365853658537,
+    0.7926829268292683
+   ],
+   "n_problems": 164,
+   "stderr_across_problems": 0.034949590161775394,
+   "problems_solved_at_least_once": 119
+  }
+ },
+ "outcomes": {
+  "passed": 119,
+  "failed": 42,
+  "error": 1,
+  "collection_error": 2
+ },
+ "assembly_modes": {
+  "full_function": 164
+ },
+ "truncated_by_max_tokens": 2,
+ "tokens": {
+  "prompt_total": 31033,
+  "completion_total": 29645,
+  "completion_mean": 180.7621951219512,
+  "completion_max": 512
+ },
+ "request_latency_s": {
+  "mean": 237.88219329268293,
+  "p50": 224.6571,
+  "p90": 383.8199,
+  "p99": 624.2831,
+  "max": 704.8391,
+  "note": "includes time queued inside the engine behind other requests"
+ },
+ "generation_wall_seconds": 1068.3,
+ "completion_tokens_per_second": 27.74969577833942,
+ "samples_per_second": 0.15351493026303473,
+ "self_hosted_cost": "not computed: no --usd-per-hour supplied (no rate is assumed by default)",
+ "api_cost_usd_total": 0.0,
+ "run": {
+  "config": {
+   "model": "openai/qwen2.5-coder-1.5b",
+   "label": "qwen2.5-coder-1.5b-greedy",
+   "api_base": "http://127.0.0.1:8000/v1",
+   "api_key": null,
+   "n": 1,
+   "temperature": 0.0,
+   "top_p": 1.0,
+   "max_tokens": 512,
+   "base_seed": 0,
+   "timeout": 1800,
+   "drop_params": false
+  },
+  "dataset": {
+   "dataset": "openai/openai_humaneval",
+   "revision": "snapshots",
+   "file": "openai_humaneval/test-00000-of-00001.parquet",
+   "sha256": "2f2871a15fbc95b6c683043359f4ed8e144c5a1c4f24f25f66bc51f598dfcfb6",
+   "n_problems": 164
+  },
+  "prompt_template_sha256": "8c031589a69533dcf5ccbf272b89b05ab0b867fd79ca23fd17a0f9eb95a873c1",
+  "hardware": {
+   "cpu": "Intel(R) Core(TM) i7-14700K",
+   "logical_cpus": "28",
+   "mem_total": "16225408 kB",
+   "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39"
+  },
+  "engine_version": {
+   "git_sha": "unknown",
+   "model": "qwen2.5-coder-1.5b",
+   "torch": "2.14.0+cpu",
+   "python": "3.12.3",
+   "config": {
+    "model": "qwen2.5-coder-1.5b",
+    "max_context": 4096,
+    "backend": "paged",
+    "batching": "continuous",
+    "max_batch": 32,
+    "kv_budget_mib": 2048,
+    "block_size": 16,
+    "num_threads": 20,
+    "max_queue": null,
+    "preemption": true
+   }
+  },
+  "workers": 40
+ },
+ "engine_stats_last_segment": {
+  "requests": 164,
+  "output_tokens": 29645,
+  "throughput_tok_per_s": 27.748745915908906,
+  "decode_steps": 1101,
+  "peak_batch": 32,
+  "slot_utilisation": 0.8367677111716622,
+  "kv_utilisation": 0.23535014788420788,
+  "kv_token_efficiency": 0.9776796496905876,
+  "attn_padding_waste": 0.4279803419900159,
+  "mean_queue_depth": 5.584014532243415,
+  "preemptions": 0,
+  "rejected": 0,
+  "prefill_seconds": 108.8703885219802,
+  "decode_seconds": 957.903120886127,
+  "ttft_p50_s": 40.27069444699737,
+  "ttft_p99_s": 101.71944677099964,
+  "tpot_p50_s": 1.0766129337062467,
+  "tpot_p99_s": 1.404311694744834,
+  "e2e_p50_s": 223.82603698050298,
+  "e2e_p99_s": 566.7599507190025
+ }
+}

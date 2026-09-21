@@ -12,7 +12,7 @@ swap needs confirmation); negative results are published with root cause.
 | 2 | Model capability decision (STOP, needs confirmation) | DONE (confirmed 2026-09-21) |
 | 3 | Golden test for the new model (Qwen2.5-Coder-0.5B) | DONE (2026-09-21) |
 | 4 | Real sampling (temperature + top-p, seedable) in the engine | DONE (2026-09-21) |
-| 5 | HumanEval harness: generate k, test, pass@k against the self-hosted model | NOT STARTED (replaces old Phase 4) |
+| 5 | HumanEval harness: generate k, test, pass@k against the self-hosted model | DONE (2026-09-22) |
 | 6 | Budget experiment: same 164 problems, same k, frontier anchor (needs explicit spend approval) | NOT STARTED (replaces old Phase 5) |
 | 7 | Write-up | NOT STARTED (was Phase 6) |
 
@@ -376,3 +376,112 @@ $ pytest -m 'not perf' -q          # full engine suite
 341 = 155 (GPT-2 golden/paged/preemption/ops + chat endpoint, unchanged) + 162 (Qwen 0.5B + 1.5B golden) + 24 (sampling).
 `git diff c84a046 HEAD` shows `test_golden.py`, `test_paged.py`, `test_preemption.py`, `test_ops.py`, `conftest.py` and
 the GPT-2 fixtures are untouched since the baseline commit. The deselected test is the noisy perf guard.
+
+---
+
+## Phase 5 — HumanEval harness against the self-hosted engine (DONE 2026-09-22)
+
+Done-when: all 164 HumanEval problems run end-to-end against the self-hosted model, producing a real pass@k with a
+bootstrap CI, logged with latency, tokens and cost-per-token on this hardware.
+
+### Built (`bench/humaneval/`, new package; existing bench code untouched)
+- `data.py`: 164 problems from the pinned HF dataset (`openai/openai_humaneval`, revision `7dce6050...`, file sha256 recorded in every run).
+- `program.py`: one FIXED chat prompt for every model (sha256 recorded), code extraction (first fenced block defining the entry
+  point), program assembly (prompt + reply, so prompt helpers stay defined). All 1,640 replies were `full_function` mode.
+- `sandbox.py` + `Dockerfile`: `PythonDockerSandbox`, same `run()` interface as bench's sandboxes: no network, non-root, cap-drop
+  ALL, read-only rootfs, memory/pid/cpu/file-size caps, pinned pytest 8.3.5. Needed because bench's `LocalSandbox` has no isolation
+  and its `DockerSandbox` is Node-specific.
+- `executor.py`: program + tests in ONE namespace (as the original human-eval), scored from the pytest JSON report through bench's
+  own `PythonAdapter.parse_results`.
+- `generate.py`: LiteLLM client against any OpenAI-compatible endpoint (`num_retries=0` per bench's gotchas), per-sample seeds are a pure
+  function of (base seed, problem, sample), resumable. `report.py`: `pipeline.stats.pass_at_k` plus a problem-level bootstrap CI
+  (B=10,000, fixed seed). `gate.py`, `__main__.py` (`generate` / `execute` / `report`).
+- `tests/test_humaneval.py`: 23 tests, including probes that the sandbox blocks the network, has a read-only root FS, runs non-root, kills
+  infinite loops, and reports an OOM as `resource_killed`.
+- Reuse from bench: `PythonAdapter.parse_results`, the Sandbox `run()` shape, `pipeline.stats`. NOT reused: `PythonAdapter.install/run_tests`
+  (they build a host venv that cannot be mounted into a network-less container).
+
+### Gate (harness correctness before trusting any score) — `bench/results/humaneval_gate.json`
+gold (canonical solutions) **164/164**, empty completion **0/164**, 35 s. The FIRST run failed 160/164: HumanEval/32, 33, 38, 50 raised
+`NameError`, because their tests call helpers defined in the prompt and my first layout split program and tests into two modules. Fixed by
+running both in one namespace. That was a harness bug, caught by the gate, not a model result.
+
+### Run configuration (identical for the sampled and greedy runs except where stated)
+Model Qwen2.5-Coder-1.5B-Instruct, fp32, CPU-only. Engine: paged KV (block 16), continuous batching, `max_batch=32`, `num_threads=20`,
+`max_context=4096`, 2048 MiB KV budget, preemption on. Machine: Intel i7-14700K, 28 logical CPUs, 16 GB RAM, WSL2. Client: 40 concurrent requests.
+- **Sampled:** n=10 per problem, temperature 0.8, top_p 0.95, max_tokens 512, seeds 0-based per (problem, sample).
+- **Greedy (secondary reference):** n=1, temperature 0 (the golden-tested argmax path). Added by me as a labelled extra, because it is cheap and directly
+  comparable to published single-sample numbers.
+
+### RESULTS (real numbers; files in `bench/results/humaneval/`)
+**Sampled, 164 problems x 10 samples = 1,640** (`qwen2.5-coder-1.5b/summary.json`):
+
+| metric | value | 95% CI (bootstrap over problems) |
+|---|---|---|
+| pass@1 | **66.89%** | 61.34 - 72.50 |
+| pass@5 | **84.27%** | 79.03 - 89.17 |
+| pass@10 | **87.80%** | 82.93 - 92.68 |
+
+Outcomes: 1,097 passed, 510 failed, 5 error, 22 collection_error, 4 timeout, 2 resource_killed (=1,640). The failed/error split is a traceback-text
+heuristic and is not used for scoring. 144 of 164 problems solved at least once; 20 never solved: HumanEval/26, 32, 83, 91, 93, 101, 108, 113, 115,
+119, 120, 126, 127, 129, 130, 134, 135, 145, 160, 163. Per-problem passes out of 10: 61 problems 10/10, 83 mixed, 20 zero.
+15 samples hit the 512-token cap (`finish_reason=length`); all 15 failed.
+
+**Greedy, n=1** (`qwen2.5-coder-1.5b-greedy/summary.json`): pass@1 **72.56%** (119/164), CI 65.85 - 79.27 (problem sampling only). 45 problems failed
+under greedy; 25 of those were solved by at least one sampled completion. No problem that greedy solved was 0/10 under sampling.
+
+**External sanity check.** The Qwen2.5-Coder technical report (arXiv 2409.12186, Table 16) lists 70.7 for Qwen2.5-Coder-1.5B-Instruct on HumanEval. The
+fetched text does not state the decoding setting. Our greedy 72.56% is 1.9 points above it and well inside our CI (116 vs 119 problems), so the engine, prompt
+and harness are not systematically off. Sampled pass@1 at T=0.8 is lower than greedy, as expected. Prior published figures for small Qwen coder models vary by
+harness/prompt, so this is a consistency check, not an exact reproduction.
+
+### Throughput, latency, tokens (sampled run; `run.json` and engine `/stats`)
+- Tokens: 310,330 prompt, 271,921 completion (mean 165.8, max 512).
+- Generation wall-clock **9,351.8 s (2.60 h)** for 1,640 samples: **29.08 completion tok/s**, 0.175 samples/s. Greedy run: 1,068 s, 27.75 tok/s.
+- Engine: 8,591 decode steps at average batch 31.7 (peak 32, slot utilisation 98%), decode 8,246 s (0.96 s/step), prefill 1,095 s, 0 preemptions,
+  0 rejections, KV utilisation 27%, attention padding waste 37%.
+- Request latency (includes time queued in the engine): mean 226 s, p50 198 s, p90 388 s, p99 648 s, max 873 s. This is a THROUGHPUT configuration
+  (40 requests in flight against a batch of 32); it says nothing about single-request latency (~0.1 s/token alone, measured separately).
+- **Cost-per-token: no dollar figure is computed, on purpose.** It needs an hourly hardware rate and none was supplied; I do not assume one. The
+  measured inputs are above. Arithmetic: 1e6 completion tokens takes 34,388 s = 9.55 h at 29.08 tok/s, so the self-hosted cost is **about $9.55 per
+  million completion tokens for every $1/hour assumed** (all-in: prefill included in the wall-clock). `report --usd-per-hour R` computes the full cost block.
+  The rate is an input to Phase 6.
+
+### Problems hit and how fixed
+1. Gate failed 160/164 (NameError on prompt helpers): one-namespace program+test. See Gate.
+2. **Engine bug: stop token leaked into chat replies** (`...```<|im_end|>`). Chat path now hides the stop token from content (still in the token stream
+   and usage); `/generate` and golden semantics unchanged. Tests on the 0.5B, streaming and not.
+3. **Engine performance bug from my own Phase 4: top-p sorted the full 152K vocab** (11.8 ms/row/step, ~190 ms/step at batch 16). Exact fast path via top-256
+   (0.45 ms on real logits, 26x faster). First version used fp32 and disagreed with the reference on one razor-edge case (true cumulative mass 0.5000021 vs
+   top_p 0.5); decision arithmetic is now float64 and tests compare against a float64 reference. Same seed now gives different tokens than the earlier Phase 4
+   sampler (nothing pinned specific values).
+4. **Serving penalty: 45% slower decode** when weights are loaded on one thread and served from another (Qwen 1.5B, 32 concurrent requests, no HTTP):
+   65.2 s main thread; 90.5 s load-on-main + engine-on-thread; 85.5 s with `set_num_threads` inside the thread; 88.3 s with `OMP_NUM_THREADS`/`MKL_NUM_THREADS`;
+   59.1 s load and run on the same thread. The API server did the slow thing. `EngineLoop(build=...)` now builds on the loop thread; through the real server
+   the same load went 90.5 s -> 59.4 s. Raw ops (linear/sdpa/matmul) are the same on either thread, so this is not a general thread penalty; the mechanism is
+   NOT established.
+5. `no_report` on 2 samples (HumanEval/100, an infinite loop appending to a list): reproduced, `docker inspect` says `OOMKilled=true`, exit 137. A model failure the
+   sandbox contained, not infra. Relabelled `resource_killed`; those 2 rows re-executed; pass@k unchanged.
+6. Process slips (no effect on results): `pkill -f` matched its own shell three times; one run's output was initially discarded and re-run; shell `\n` escaping
+   corrupted scripted edits several times (each caught by a syntax check).
+
+### Limitations and caveats (state these in the write-up)
+- **Contamination.** HumanEval is public and very likely in Qwen2.5-Coder's training data; these scores probably overstate real out-of-distribution ability.
+- **Real-workload decode was 0.96 s/step vs 0.41 s/step in my uniform synthetic test at the same batch size.** Padding waste (37%) is a suspect (the paged
+  `gather` copies KV for all rows up to the longest row), but I did not verify it. The published throughput is what was measured, not a tuned number.
+- No prefix caching: the 10 samples of one prompt each re-prefill it (prefill was 1,095 s, 12% of engine time).
+- The sampled pass@1 CI resamples problems; it does not include seed-to-seed variance. pass@10 with n=10 is the fraction of problems solved at least once
+  (the unbiased estimator degenerates at n=k), so its CI is only the problem-sampling uncertainty.
+- The smoke artifacts `results/humaneval/smoke_0.5b/` were produced BEFORE fixes 2-3 (stop token in replies, slow sampler); they prove wiring only and are not results.
+- Sample ordering/queueing: concurrency 40 vs batch 32 kept the engine full; latency numbers reflect that.
+
+### Done-when check (actual output)
+```
+$ python -m humaneval.gate            -> gold 164/164, empty 0/164 (35.1 s)
+$ pytest bench/tests/test_humaneval.py -> 23 passed
+$ python -m humaneval generate ...    -> requested 1640 completed 1640 errors 0 (9351.8 s)
+$ python -m humaneval report          -> pass@1 66.89 [61.34, 72.50]  pass@5 84.27  pass@10 87.80 [82.93, 92.68]
+$ engine: pytest -m 'not perf'         -> 354 passed, 1 deselected in 1559.58s (25:59)
+$ bench:  pytest                       -> 69 passed in 35.17s
+```
+354 = 341 (prior full pass) + 13 new (stop-token 3, sampler fast-path/speed 7, engine-thread 3). All 164 problems ran end-to-end with real pass@k and CIs.

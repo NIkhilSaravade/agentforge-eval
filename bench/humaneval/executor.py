@@ -60,6 +60,11 @@ def run_program(sandbox, problem: Problem, program: str, timeout: int = 30,
             return ExecResult(False, "timeout", f"exceeded {timeout}s", time.perf_counter() - t0)
         report_path = work / "report.json"
         if not report_path.exists():
+            if proc.returncode == 137:
+                # SIGKILL: the container hit its memory cap (verified with `docker inspect`: OOMKilled=true on
+                # the HumanEval/100 infinite-append loops). A model failure the sandbox contained, not infra.
+                return ExecResult(False, "resource_killed", "killed by the sandbox memory limit (exit 137)",
+                                  time.perf_counter() - t0)
             return ExecResult(False, "no_report", (proc.stderr or proc.stdout)[-300:], time.perf_counter() - t0)
         raw = report_path.read_text()
         report = json.loads(raw)

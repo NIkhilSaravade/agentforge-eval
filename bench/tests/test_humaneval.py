@@ -123,6 +123,14 @@ def test_sandbox_memory_bomb_is_contained(sb):
     assert not r.passed
 
 
+def test_unbounded_growth_is_reported_as_resource_killed_not_infra(sb):
+    """The real HumanEval/100 failure mode: a loop that never ends while appending. The container is OOM-killed
+    (exit 137) before pytest writes a report; that is a scored model failure with its own label."""
+    prog = "def add(a, b):\n    xs = []\n    while True:\n        xs.append(bytearray(1024 * 1024))\n"
+    r = run_program(sb, ADD, prog, timeout=30)
+    assert not r.passed and r.outcome in ("resource_killed", "timeout"), r
+
+
 # --------------------------------------------------------------------------- the gate, on the awkward problems
 @pytest.mark.parametrize("idx", [0, 32, 33, 38, 50, 129, 163])
 def test_gold_passes_and_empty_fails_on_selected_problems(sb, idx):
