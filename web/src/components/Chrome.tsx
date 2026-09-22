@@ -4,12 +4,12 @@ import { useEffect, useState, type ReactNode } from "react";
 import { data } from "../lib/data";
 
 export const SECTIONS = [
-  { id: "result", no: "00", label: "The result", theme: "light" },
-  { id: "engine", no: "01", label: "The engine", theme: "dark" },
-  { id: "pivot", no: "02", label: "The pivot", theme: "light" },
-  { id: "harness", no: "03", label: "The harness", theme: "dark" },
-  { id: "results", no: "04", label: "The numbers", theme: "light" },
-  { id: "close", no: "05", label: "Close", theme: "dark" },
+  { id: "result", no: "00", label: "The result" },
+  { id: "engine", no: "01", label: "The engine" },
+  { id: "pivot", no: "02", label: "The pivot" },
+  { id: "harness", no: "03", label: "The harness" },
+  { id: "results", no: "04", label: "The numbers" },
+  { id: "close", no: "05", label: "Close" },
 ] as const;
 
 /** The active section is the last one whose heading has scrolled above 40% of the viewport. */
@@ -39,18 +39,6 @@ function useActive(ids: readonly string[]): string {
     };
   }, [ids]);
   return active;
-}
-
-/** Section alternates light/dark backgrounds as you scroll, like Clerk's marketing page. This sets
- *  body[data-theme] to the active section's theme; every color in styles.css is a custom property read
- *  off body, so the whole page - rail, cards, diagrams - recolors and crossfades together. */
-export function ThemeWatcher() {
-  const active = useActive(SECTIONS.map((s) => s.id));
-  useEffect(() => {
-    const theme = SECTIONS.find((s) => s.id === active)?.theme ?? "light";
-    document.body.dataset.theme = theme;
-  }, [active]);
-  return null;
 }
 
 export function Rail() {

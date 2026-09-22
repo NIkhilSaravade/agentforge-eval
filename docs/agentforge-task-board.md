@@ -887,3 +887,21 @@ floor, CVD separation worst-adjacent dE 25.1, normal-vision floor dE 26.1, contr
 trio was also validated as its own palette (unchanged from W1-W4: all-pass, worst adjacent CVD dE 21.3). Verified
 again after the retune: vitest 29/29, both lints clean, `tsc -b` clean, `vite build` built, `shots.mjs` no page
 errors; engine/harness dark-section screenshots re-checked by eye for legibility.
+
+
+## W7: black throughout (dropped the light/dark alternation) — DONE
+
+User asked to keep the page black throughout rather than alternating light/dark per section.
+
+**Built:** `web/src/styles.css` — the validated dark palette (from W6's palette-validator fix) moved into `:root`
+as the only palette; the light `:root` block and the `body[data-theme="dark"]` override block are gone, along
+with the now-unneeded `body`/`body :where(*)` crossfade-transition rules. `web/src/components/Chrome.tsx` — removed
+the `ThemeWatcher` component and the per-section `theme` field on `SECTIONS` (nothing toggles `data-theme` anymore).
+`web/src/App.tsx` — dropped the `<ThemeWatcher />` mount.
+
+**Done-when check, actual output:**
+- `build-data.mjs`: data.json regenerated (22 source files hashed).
+- vitest: 2 files, 29 tests passed. lint-tells: clean (18 files). lint-numbers: clean (13 components).
+- `tsc -b`: clean. `vite build`: built. `shots.mjs`: no page errors.
+- Visual check: opening, pivot, harness, results and close all render on the same black surface with the same
+  bordered/rounded card language; confirmed on both desktop (1440) and mobile (390) captures.

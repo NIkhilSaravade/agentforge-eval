@@ -1,12 +1,11 @@
 /* AgentForge Eval results site.
-   An engineering notebook, given a product site's polish: warm paper, ink, hairline rules, ONE loud accent, alternating
-   with sections that flip to a dark surface as you scroll (data-theme, toggled by ThemeWatcher in Chrome.tsx) - each
-   flip transitions smoothly rather than cutting. Cards (score tiles, figure wells, code panels) are bordered and
-   rounded, with a soft resting shadow, deliberately.
-   The accent (vermilion) is the self-hosted system everywhere it appears: its series color, its KV blocks, its preemptions.
-   Hosted models are cobalt (Haiku 4.5) and ochre (Opus 5). Both the light and the dark trio were run through the
-   dataviz palette validator as separate categorical palettes: light (worst adjacent CVD dE 21.3, contrast >= 3:1 on
-   #fcfcfb) and dark (worst adjacent CVD dE 25.1, contrast >= 3:1 on #1a1a19, OKLCH L 0.48-0.67), each all-pass.
+   An engineering notebook, given a product site's polish: black surface, ink-white text, hairline rules, ONE loud
+   accent, held throughout - no light/dark alternation. Cards (score tiles, figure wells, code panels) are bordered
+   and rounded, with a soft resting shadow, deliberately.
+   The accent (vermilion) is the self-hosted system everywhere it appears: its series color, its KV blocks, its
+   preemptions. Hosted models are cobalt (Haiku 4.5) and ochre (Opus 5). The trio was run through the dataviz
+   palette validator as a categorical palette against this dark surface (#1a1a19): worst adjacent CVD dE 25.1,
+   normal-vision floor dE 26.1, contrast >= 3:1, OKLCH L 0.48-0.67 - all-pass.
    Blurred panels, novelty iconography and endless animation stay off the page. */
 
 @import "@fontsource-variable/newsreader/opsz.css";
@@ -16,42 +15,24 @@
 @import "@fontsource/ibm-plex-mono/600.css";
 
 :root {
-  --paper: #f2eee4;
-  --paper-2: #e9e3d3;       /* recessed areas: figure wells */
-  --ink: #161410;
-  --ink-2: #4a4538;         /* secondary text */
-  --ink-3: #6f6858;         /* muted labels, 4.8:1 on paper */
-  --rule: #c9c1ae;          /* hairlines */
-  --self: #c4411d;          /* self-hosted (accent) */
-  --haiku: #2b58a6;
-  --opus: #a56e00;
-  --card: #fffdf8;          /* card surface, a shade lighter than the page */
-  --card-border: #ddd5bf;
-  --shadow: 0 1px 2px rgba(30, 24, 8, 0.04), 0 10px 28px rgba(30, 24, 8, 0.07);
+  --paper: #0a0a0b;
+  --paper-2: #151517;       /* recessed areas: figure wells */
+  --ink: #f4f2ea;
+  --ink-2: #c8c3b4;         /* secondary text */
+  --ink-3: #8b8579;         /* muted labels */
+  --rule: #29282a;          /* hairlines */
+  --self: #e8552e;          /* self-hosted (accent) */
+  --haiku: #5a8fe0;
+  --opus: #b8871f;
+  --card: #131315;          /* card surface, a shade lighter than the page */
+  --card-border: #2a2a2d;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 16px 40px rgba(0, 0, 0, 0.55);
   --radius: 1rem;
   --radius-sm: 0.6rem;
   --serif: "Newsreader Variable", "Newsreader", Georgia, "Times New Roman", serif;
   --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
   --rail: 13.5rem;
   --measure: 35rem;
-}
-
-/* Dark sections (Clerk-style alternation): body[data-theme="dark"] is toggled by ThemeWatcher as the
-   active section changes. Because every component reads color through these custom properties, flipping
-   them here recolors the whole page - rail, cards, tables, diagrams - without per-component overrides. */
-body[data-theme="dark"] {
-  --paper: #0a0a0b;
-  --paper-2: #151517;
-  --ink: #f4f2ea;
-  --ink-2: #c8c3b4;
-  --ink-3: #8b8579;
-  --rule: #29282a;
-  --self: #e8552e;
-  --haiku: #5a8fe0;
-  --opus: #b8871f;
-  --card: #131315;
-  --card-border: #2a2a2d;
-  --shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 16px 40px rgba(0, 0, 0, 0.55);
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -68,15 +49,7 @@ body {
   line-height: 1.58;
   font-feature-settings: "kern", "liga", "onum";
   text-rendering: optimizeLegibility;
-  transition: background-color 0.6s ease, color 0.6s ease;
 }
-@media (prefers-reduced-motion: reduce) { body { transition: none; } }
-/* Everything under body crossfades with it - background/border/fill follow the theme swap, transforms and
-   opacity (Motion's job) are untouched. */
-body :where(*) {
-  transition: background-color 0.5s ease, border-color 0.5s ease, fill 0.5s ease, box-shadow 0.5s ease;
-}
-@media (prefers-reduced-motion: reduce) { body :where(*) { transition: none; } }
 ::selection { background: var(--ink); color: var(--paper); }
 a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.18em; text-decoration-color: var(--ink-3); }
 a:hover { text-decoration-color: var(--self); color: var(--self); }

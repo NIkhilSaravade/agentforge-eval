@@ -1,4 +1,4 @@
-import { Rail, ThemeWatcher } from "./components/Chrome";
+import { Rail } from "./components/Chrome";
 import { Close } from "./sections/Close";
 import { Engine } from "./sections/Engine";
 import { Harness } from "./sections/Harness";
@@ -9,7 +9,6 @@ import { Results } from "./sections/Results";
 export default function App() {
   return (
     <div className="page">
-      <ThemeWatcher />
       <Rail />
       <main className="main">
         <div className="wrap">
