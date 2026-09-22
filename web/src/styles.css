@@ -4,9 +4,10 @@
    flip transitions smoothly rather than cutting. Cards (score tiles, figure wells, code panels) are bordered and
    rounded, with a soft resting shadow, deliberately.
    The accent (vermilion) is the self-hosted system everywhere it appears: its series color, its KV blocks, its preemptions.
-   Hosted models are cobalt (Haiku 4.5) and ochre (Opus 5) in light sections; both are stepped brighter in dark sections
-   to hold contrast. Series colors were validated with the dataviz palette validator (worst adjacent CVD dE 21.3,
-   contrast >= 3:1 on --paper). Blurred panels, novelty iconography and endless animation stay off the page. */
+   Hosted models are cobalt (Haiku 4.5) and ochre (Opus 5). Both the light and the dark trio were run through the
+   dataviz palette validator as separate categorical palettes: light (worst adjacent CVD dE 21.3, contrast >= 3:1 on
+   #fcfcfb) and dark (worst adjacent CVD dE 25.1, contrast >= 3:1 on #1a1a19, OKLCH L 0.48-0.67), each all-pass.
+   Blurred panels, novelty iconography and endless animation stay off the page. */
 
 @import "@fontsource-variable/newsreader/opsz.css";
 @import "@fontsource-variable/newsreader/opsz-italic.css";
@@ -45,9 +46,9 @@ body[data-theme="dark"] {
   --ink-2: #c8c3b4;
   --ink-3: #8b8579;
   --rule: #29282a;
-  --self: #ff6a3d;
-  --haiku: #6c9fe8;
-  --opus: #e0ac3f;
+  --self: #e8552e;
+  --haiku: #5a8fe0;
+  --opus: #b8871f;
   --card: #131315;
   --card-border: #2a2a2d;
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 16px 40px rgba(0, 0, 0, 0.55);

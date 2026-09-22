@@ -879,5 +879,11 @@ its own literal match; reworded the comment instead of weakening the rule.
   clearly against the dark surface; rail's active item now shows as a bordered highlight instead of a hairline;
   mobile captures show the theme flip and card stacking with no horizontal overflow.
 
-**Open items:** the dark-mode step of `--self`/`--haiku`/`--opus` was chosen by eye for contrast, not re-run through
-`scripts/validate_palette.js` from the dataviz skill — worth doing before calling the palette final.
+**Open items:** none — resolved same day. The dark-mode step of `--self`/`--haiku`/`--opus` was re-run through the
+dataviz skill's `validate_palette.js` as its own categorical palette (`--mode dark`, surface `#1a1a19`). First pass
+(`#ff6a3d`/`#6c9fe8`/`#e0ac3f`) failed the OKLCH lightness band (L 0.48-0.67 expected; measured 0.70-0.77 - too light
+against a near-black surface). Retuned to `#e8552e`/`#5a8fe0`/`#b8871f`: all five checks pass (lightness band, chroma
+floor, CVD separation worst-adjacent dE 25.1, normal-vision floor dE 26.1, contrast >= 3:1 on `#1a1a19`). Light-mode
+trio was also validated as its own palette (unchanged from W1-W4: all-pass, worst adjacent CVD dE 21.3). Verified
+again after the retune: vitest 29/29, both lints clean, `tsc -b` clean, `vite build` built, `shots.mjs` no page
+errors; engine/harness dark-section screenshots re-checked by eye for legibility.
