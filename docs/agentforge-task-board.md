@@ -815,3 +815,69 @@ Screenshots reviewed: the table, interval chart, all four strips, break-even cha
 - Manual AI-tell review (not lintable): no centered hero with two pill buttons; no repeated icon-heading-paragraph grid (the one 3-score strip in the opening is used once, no icons); negative result sits in the opening and at equal weight in Results.
 
 **Open items for the owner:** contact details (add to `web/site.config.json`); confirm repo is public / accepts issues; keep or remove the "Built with Claude Code" line; deployment not done (out of scope); `workspaces=true` in ~/.npmrc breaks per-project npm (we set `npm_config_workspaces=false`).
+
+## W6: Clerk-influenced visual pass (rounded cards, alternating light/dark sections) — DONE
+
+User asked the site to feel like clerk.com: rounded bordered cards, tighter type/spacing, and a scroll-driven
+alternation between white and black sections with a smooth transition. Confirmed with the user first, since it
+directly reversed a W1 non-negotiable ("no gradients, no shadows, no rounded cards, no blur"); the user explicitly
+lifted the ban on rounded corners, shadows and a blue/purple gradient (blur/glassmorphism, emoji/sparkle icons,
+non-brand typefaces and endless animation stay banned).
+
+**Built:**
+- `web/src/components/Chrome.tsx` — `SECTIONS` now carries a `theme: "light" | "dark"` per section (alternating:
+  result/pivot/results light, engine/harness/close dark); new `ThemeWatcher` component reuses the existing scroll
+  `useActive` hook and sets `document.body.dataset.theme` as the active section changes.
+- `web/src/styles.css` — `body[data-theme="dark"]` overrides the same custom properties every component already
+  reads (`--paper`, `--ink`, `--rule`, `--self`, `--haiku`, `--opus`, plus new `--card`/`--card-border`/`--shadow`/
+  `--radius`), so the whole page recolors from one attribute flip, and a scoped `transition` on `body` and its
+  descendants crossfades the swap instead of cutting. `--self`/`--haiku`/`--opus` are stepped brighter in the dark
+  palette to hold contrast (not re-validated with the dataviz palette script — noted as an open item below). Cards
+  (`.score`, `.figure .well`, `.stage-data`, `.table-wrap`, `.deflist > div`, `.btn`, the active rail item) now use
+  `var(--radius)`/`var(--card)`/`var(--card-border)`/`var(--shadow)`. Section top padding increased for more
+  product-page rhythm.
+- `web/scripts/lint-tells.mjs` — removed the gradient, shadow, border-radius and purple-hue rules (now the sites
+
+
+## W6: Clerk-influenced visual pass (rounded cards, alternating light/dark sections) — DONE
+
+User asked the site to feel like clerk.com: rounded bordered cards, tighter type/spacing, and a scroll-driven
+alternation between white and black sections with a smooth transition. Confirmed with the user first, since it
+directly reversed a W1 non-negotiable ("no gradients, no shadows, no rounded cards, no blur"); the user explicitly
+lifted the ban on rounded corners, shadows and a blue/purple gradient (blur/glassmorphism, emoji/sparkle icons,
+non-brand typefaces and endless animation stay banned).
+
+**Built:**
+- `web/src/components/Chrome.tsx` — `SECTIONS` now carries a `theme: "light" | "dark"` per section (alternating:
+  result/pivot/results light, engine/harness/close dark); new `ThemeWatcher` component reuses the existing scroll
+  `useActive` hook and sets `document.body.dataset.theme` as the active section changes.
+- `web/src/styles.css` — `body[data-theme="dark"]` overrides the same custom properties every component already
+  reads (`--paper`, `--ink`, `--rule`, `--self`, `--haiku`, `--opus`, plus new `--card`/`--card-border`/`--shadow`/
+  `--radius`), so the whole page recolors from one attribute flip, and a scoped `transition` on `body` and its
+  descendants crossfades the swap instead of cutting. `--self`/`--haiku`/`--opus` are stepped brighter in the dark
+  palette to hold contrast (not re-validated with the dataviz palette script — noted as an open item below). Cards
+  (`.score`, `.figure .well`, `.stage-data`, `.table-wrap`, `.deflist > div`, `.btn`, the active rail item) now use
+  `var(--radius)`/`var(--card)`/`var(--card-border)`/`var(--shadow)`. Section top padding increased for more
+  product-page rhythm.
+- `web/scripts/lint-tells.mjs` — removed the gradient, shadow, border-radius and purple-hue rules (now the site's
+  intentional design); kept glass/blur, sparkle/emoji, Inter, endless-animation and canvas/particle bans.
+  `web/tests/lint.test.ts` updated to match: replaced the five stale "flags X" cases with one case asserting
+  rounded/shadow/gradient/purple are now accepted.
+
+**Problems hit:** first rebuild failed lint-tells because the new CSS file-header comment used the word "sparkle"
+inside a sentence explaining what is still banned — the lint cannot tell negation from advocacy, correctly flagged
+its own literal match; reworded the comment instead of weakening the rule.
+
+**Done-when check, actual output:**
+- `build-data.mjs`: data.json regenerated (22 source files hashed).
+- vitest: 2 files, 29 tests passed.
+- lint-tells: clean (18 files). lint-numbers: clean (13 components).
+- `tsc -b`: clean. `vite build`: built.
+- `shots.mjs`: "no page errors" on both desktop (1440) and mobile (390) after the restyle.
+- Visual check (screenshots, not lintable): opening/pivot/results render light with rounded score/table/chart
+  cards; engine/harness/close render dark with the same card language; the engine and harness diagrams read
+  clearly against the dark surface; rail's active item now shows as a bordered highlight instead of a hairline;
+  mobile captures show the theme flip and card stacking with no horizontal overflow.
+
+**Open items:** the dark-mode step of `--self`/`--haiku`/`--opus` was chosen by eye for contrast, not re-run through
+`scripts/validate_palette.js` from the dataviz skill — worth doing before calling the palette final.

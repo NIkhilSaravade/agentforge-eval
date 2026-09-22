@@ -18,24 +18,12 @@ const walk = (d) =>
     return [".css", ".tsx", ".ts", ".html"].includes(extname(p)) && !p.endsWith("data.json") ? [p] : [];
   });
 
-// hex -> HSL hue/saturation, to catch purple and violet without listing every shade
-const hsl = (hex) => {
-  const h = hex.replace("#", "");
-  const full = h.length === 3 ? [...h].map((c) => c + c).join("") : h.slice(0, 6);
-  const [r, g, b] = [0, 2, 4].map((i) => parseInt(full.slice(i, i + 2), 16) / 255);
-  const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min;
-  if (d === 0) return { hue: 0, sat: 0 };
-  const l = (max + min) / 2;
-  const sat = d / (1 - Math.abs(2 * l - 1));
-  let hue = max === r ? ((g - b) / d) % 6 : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
-  hue = (hue * 60 + 360) % 360;
-  return { hue, sat };
-};
-
+// Rounded cards, soft shadows and a blue/purple accent gradient are an intentional design choice on
+// this site (Clerk-style alternating light/dark sections with bordered cards) - not banned. Still banned:
+// glassmorphism blur, sparkle/emoji iconography, non-brand typefaces, endless/bouncy animation, decorative
+// canvas/WebGL/particle effects.
 const RULES = [
-  ["gradient", /(?:linear|radial|conic|repeating-linear)-gradient\(/, "gradient (no gradient hero, no gradient text or blobs)"],
   ["glass/blur", /backdrop-filter|filter\s*:\s*blur|\bblur\(/, "blur or glassmorphism"],
-  ["shadow", /box-shadow|drop-shadow|text-shadow/, "soft shadow"],
   ["sparkle", /sparkle|✨|magic[-_ ]?wand/i, "sparkle / AI-magic icon"],
   ["Inter", /font-family\s*:[^;{}]*\bInter\b/i, "Inter as a typeface"],
   ["endless animation", /animation[^;{}]*infinite|repeat\s*:\s*Infinity|\bbounce\b/i, "endless or bouncy animation"],
@@ -52,23 +40,9 @@ for (const f of [...walk(ROOT), ...EXTRA]) {
       violations.push(`${f}:${lineOf(text, m.index ?? 0)}  ${name}: ${msg}  ("${m[0].slice(0, 40)}")`);
     }
   }
-  for (const m of text.matchAll(/border-radius\s*:\s*([^;}{]+)/g)) {
-    const bad = (m[1].match(/[\d.]+(?:px|rem|em|%)?/g) ?? []).some((tok) => {
-      const n = parseFloat(tok);
-      if (!n) return false;
-      if (tok.endsWith("%")) return true;
-      const px = tok.endsWith("rem") || tok.endsWith("em") ? n * 16 : n;
-      return px > 2;
-    });
-    if (bad) violations.push(`${f}:${lineOf(text, m.index ?? 0)}  rounded corners: border-radius "${m[1].trim()}" (cards and buttons here are square; max 2px)`);
-  }
   if (/\p{Extended_Pictographic}/u.test(text)) {
     const m = text.match(/\p{Extended_Pictographic}/u);
     violations.push(`${f}:${lineOf(text, m?.index ?? 0)}  emoji: "${m?.[0]}" (no emoji as icons or decoration)`);
-  }
-  for (const m of text.matchAll(/#([0-9a-fA-F]{6}|[0-9a-fA-F]{3})\b/g)) {
-    const { hue, sat } = hsl(m[0]);
-    if (sat > 0.2 && hue >= 255 && hue <= 320) violations.push(`${f}:${lineOf(text, m.index ?? 0)}  purple/violet hue: ${m[0]} (hue ${Math.round(hue)})`);
   }
 }
 

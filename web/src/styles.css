@@ -1,8 +1,12 @@
 /* AgentForge Eval results site.
-   One visual language, held throughout: an engineering notebook. Warm paper, ink, hairline rules, ONE loud accent.
+   An engineering notebook, given a product site's polish: warm paper, ink, hairline rules, ONE loud accent, alternating
+   with sections that flip to a dark surface as you scroll (data-theme, toggled by ThemeWatcher in Chrome.tsx) - each
+   flip transitions smoothly rather than cutting. Cards (score tiles, figure wells, code panels) are bordered and
+   rounded, with a soft resting shadow, deliberately.
    The accent (vermilion) is the self-hosted system everywhere it appears: its series color, its KV blocks, its preemptions.
-   Hosted models are cobalt (Haiku 4.5) and ochre (Opus 5). Series colors were validated with the dataviz palette validator
-   (worst adjacent CVD dE 21.3, contrast >= 3:1 on --paper). No gradients, no shadows, no rounded cards, no blur. */
+   Hosted models are cobalt (Haiku 4.5) and ochre (Opus 5) in light sections; both are stepped brighter in dark sections
+   to hold contrast. Series colors were validated with the dataviz palette validator (worst adjacent CVD dE 21.3,
+   contrast >= 3:1 on --paper). Blurred panels, novelty iconography and endless animation stay off the page. */
 
 @import "@fontsource-variable/newsreader/opsz.css";
 @import "@fontsource-variable/newsreader/opsz-italic.css";
@@ -20,10 +24,33 @@
   --self: #c4411d;          /* self-hosted (accent) */
   --haiku: #2b58a6;
   --opus: #a56e00;
+  --card: #fffdf8;          /* card surface, a shade lighter than the page */
+  --card-border: #ddd5bf;
+  --shadow: 0 1px 2px rgba(30, 24, 8, 0.04), 0 10px 28px rgba(30, 24, 8, 0.07);
+  --radius: 1rem;
+  --radius-sm: 0.6rem;
   --serif: "Newsreader Variable", "Newsreader", Georgia, "Times New Roman", serif;
   --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
   --rail: 13.5rem;
   --measure: 35rem;
+}
+
+/* Dark sections (Clerk-style alternation): body[data-theme="dark"] is toggled by ThemeWatcher as the
+   active section changes. Because every component reads color through these custom properties, flipping
+   them here recolors the whole page - rail, cards, tables, diagrams - without per-component overrides. */
+body[data-theme="dark"] {
+  --paper: #0a0a0b;
+  --paper-2: #151517;
+  --ink: #f4f2ea;
+  --ink-2: #c8c3b4;
+  --ink-3: #8b8579;
+  --rule: #29282a;
+  --self: #ff6a3d;
+  --haiku: #6c9fe8;
+  --opus: #e0ac3f;
+  --card: #131315;
+  --card-border: #2a2a2d;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 16px 40px rgba(0, 0, 0, 0.55);
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -40,7 +67,15 @@ body {
   line-height: 1.58;
   font-feature-settings: "kern", "liga", "onum";
   text-rendering: optimizeLegibility;
+  transition: background-color 0.6s ease, color 0.6s ease;
 }
+@media (prefers-reduced-motion: reduce) { body { transition: none; } }
+/* Everything under body crossfades with it - background/border/fill follow the theme swap, transforms and
+   opacity (Motion's job) are untouched. */
+body :where(*) {
+  transition: background-color 0.5s ease, border-color 0.5s ease, fill 0.5s ease, box-shadow 0.5s ease;
+}
+@media (prefers-reduced-motion: reduce) { body :where(*) { transition: none; } }
 ::selection { background: var(--ink); color: var(--paper); }
 a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.18em; text-decoration-color: var(--ink-3); }
 a:hover { text-decoration-color: var(--self); color: var(--self); }
@@ -76,7 +111,7 @@ p { margin: 0 0 1.05em; }
 .lede { font-size: 1.5rem; line-height: 1.34; letter-spacing: -0.006em; color: var(--ink); }
 .small { font-size: 0.95rem; line-height: 1.5; color: var(--ink-2); }
 strong { font-weight: 600; }
-code, .code { font-family: var(--mono); font-size: 0.86em; background: var(--paper-2); padding: 0.05em 0.3em; }
+code, .code { font-family: var(--mono); font-size: 0.86em; background: var(--paper-2); padding: 0.05em 0.4em; border-radius: 0.3em; }
 
 /* ---------- page grid: sticky rail + main ---------- */
 .page { display: grid; grid-template-columns: var(--rail) minmax(0, 1fr); min-height: 100vh; }
@@ -93,10 +128,9 @@ code, .code { font-family: var(--mono); font-size: 0.86em; background: var(--pap
 .rail li a {
   display: grid; grid-template-columns: 1.9rem 1fr; align-items: baseline;
   font-family: var(--mono); font-size: 0.78rem; text-decoration: none; color: var(--ink-3);
-  padding: 0.42rem 0; border-top: 1px solid var(--rule);
+  padding: 0.42rem 0.5rem; margin: 0 -0.5rem; border-radius: var(--radius-sm);
 }
-.rail li:last-child a { border-bottom: 1px solid var(--rule); }
-.rail li a[aria-current="true"] { color: var(--ink); font-weight: 600; }
+.rail li a[aria-current="true"] { color: var(--ink); font-weight: 600; background: var(--card); border: 1px solid var(--card-border); box-shadow: var(--shadow); }
 .rail li a[aria-current="true"] .no { color: var(--self); }
 .rail .foot { font-family: var(--mono); font-size: 0.68rem; color: var(--ink-3); line-height: 1.5; }
 
@@ -104,8 +138,8 @@ code, .code { font-family: var(--mono); font-size: 0.86em; background: var(--pap
 .wrap { max-width: 64rem; margin: 0 auto; }
 
 /* ---------- sections ---------- */
-.section { padding-top: 5.5rem; }
-.sec-head { border-top: 2px solid var(--ink); padding-top: 0.9rem; margin-bottom: 2.4rem; display: grid; grid-template-columns: 4.2rem 1fr; gap: 0 1rem; align-items: baseline; }
+.section { padding-top: 7.2rem; }
+.sec-head { border-top: 2px solid var(--ink); padding-top: 1rem; margin-bottom: 2.8rem; display: grid; grid-template-columns: 4.2rem 1fr; gap: 0 1rem; align-items: baseline; }
 .sec-head .no { font-family: var(--mono); font-size: 0.85rem; font-weight: 600; color: var(--self); }
 .cols { display: grid; grid-template-columns: minmax(0, var(--measure)) minmax(0, 14.5rem); gap: 0 3rem; }
 .cols > .prose { grid-column: 1; }
@@ -115,29 +149,34 @@ code, .code { font-family: var(--mono); font-size: 0.86em; background: var(--pap
 
 /* ---------- figures ---------- */
 .figure { margin: 2.6rem 0; }
-.figure .well { background: var(--paper-2); border-top: 1px solid var(--ink); border-bottom: 1px solid var(--rule); padding: 1.1rem 1.2rem 1rem; }
-.figure figcaption { font-family: var(--mono); font-size: 0.72rem; line-height: 1.5; color: var(--ink-3); margin-top: 0.7rem; max-width: 52rem; }
+.figure .well {
+  background: var(--card); border: 1px solid var(--card-border); border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 1.3rem 1.4rem 1.2rem;
+}
+.figure figcaption { font-family: var(--mono); font-size: 0.72rem; line-height: 1.5; color: var(--ink-3); margin-top: 0.8rem; max-width: 52rem; }
 .figure figcaption b { color: var(--ink); font-weight: 600; }
 svg text { font-family: var(--mono); }
 
-/* ---------- buttons and inputs (square, ink, no pills) ---------- */
+/* ---------- buttons and inputs (rounded, bordered, ink-forward) ---------- */
 .btn {
   font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 500;
-  background: transparent; color: var(--ink); border: 1px solid var(--ink); padding: 0.42rem 0.75rem; cursor: pointer; border-radius: 0;
+  background: var(--card); color: var(--ink); border: 1px solid var(--card-border); padding: 0.48rem 0.85rem; cursor: pointer;
+  border-radius: var(--radius-sm); box-shadow: var(--shadow);
 }
-.btn:hover { background: var(--ink); color: var(--paper); }
-.btn[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
-.btn:disabled { opacity: 0.35; cursor: default; }
+.btn:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.btn[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.btn:disabled { opacity: 0.35; cursor: default; box-shadow: none; }
 input[type="range"] { accent-color: var(--self); width: 100%; margin: 0; }
 
 /* ---------- tables ---------- */
+.table-wrap { background: var(--card); border: 1px solid var(--card-border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 0.3rem 1rem; }
 table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
 th { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 500; color: var(--ink-3); text-align: right; padding: 0.5rem 0.7rem; border-bottom: 1px solid var(--ink); vertical-align: bottom; }
 th:first-child, td:first-child { text-align: left; }
 td { font-family: var(--mono); font-size: 0.86rem; padding: 0.62rem 0.7rem; border-bottom: 1px solid var(--rule); text-align: right; vertical-align: baseline; }
 td.name { font-family: var(--serif); font-size: 1.05rem; }
 td .ci { display: block; font-size: 0.7rem; color: var(--ink-3); margin-top: 0.1rem; }
-.swatch { display: inline-block; width: 0.7rem; height: 0.7rem; margin-right: 0.5rem; vertical-align: -0.02rem; }
+.swatch { display: inline-block; width: 0.7rem; height: 0.7rem; margin-right: 0.5rem; vertical-align: -0.02rem; border-radius: 0.2rem; }
 .swatch.hollow { background: transparent !important; border: 2px solid currentColor; box-sizing: border-box; }
 
 /* ---------- reveal (used sparingly) ---------- */
@@ -199,8 +238,14 @@ td .ci { display: block; font-size: 0.7rem; color: var(--ink-3); margin-top: 0.1
 /* ---------- opening ---------- */
 .opening { padding-bottom: 1rem; }
 .opening h1 { margin-top: 1.2rem; max-width: 15ch; }
-.scores { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 1.6rem; margin-top: 3rem; }
-.score { border-top: 6px solid var(--ink); padding-top: 0.7rem; }
+.scores { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.4rem; margin-top: 3rem; }
+.score {
+  border-top: 6px solid var(--self);
+  background: var(--card); border: 1px solid var(--card-border); border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 1.3rem 1.4rem 1.5rem;
+}
+.score:nth-child(2) { border-top-color: var(--haiku); }
+.score:nth-child(3) { border-top-color: var(--opus); }
 .score .big { font-family: var(--mono); font-size: clamp(2.3rem, 4.6vw, 3.9rem); font-weight: 500; letter-spacing: -0.03em; line-height: 1.05; margin: 0.5rem 0 0.5rem; color: var(--ink); }
 .score .label { min-height: 2.7em; }
 .score .small { line-height: 1.5; }
@@ -223,7 +268,11 @@ blockquote em { font-style: italic; }
 .rail-n.on { fill: var(--ink); font-weight: 600; }
 .stage { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: 1.4rem; margin-top: 0.4rem; align-items: start; }
 .stage-says p { font-size: 1.02rem; line-height: 1.45; margin: 0.4rem 0 0; }
-.stage-data { margin: 0; background: var(--paper); border: 1px solid var(--ink); padding: 0.85rem 1rem; font-family: var(--mono); font-size: 0.78rem; line-height: 1.5; white-space: pre-wrap; word-break: break-word; height: min(24rem, 46vh); overflow: auto; color: var(--ink); }
+.stage-data {
+  margin: 0; background: var(--card); border: 1px solid var(--card-border); border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 1rem 1.15rem; font-family: var(--mono); font-size: 0.78rem; line-height: 1.5; white-space: pre-wrap; word-break: break-word;
+  height: min(24rem, 46vh); overflow: auto; color: var(--ink);
+}
 .sticky-fig.trace { top: 5vh; }
 .bullets { margin: 0.9rem 0 0; padding: 0 0 0 1.1rem; font-size: 0.95rem; line-height: 1.45; color: var(--ink-2); }
 .bullets li { margin-bottom: 0.35rem; }
@@ -262,7 +311,11 @@ table.compact td.name { font-size: 1rem; }
 
 /* ---------- close ---------- */
 .deflist { margin: 1.8rem 0 1.6rem; }
-.deflist > div { display: grid; grid-template-columns: 7.5rem minmax(0, 1fr); gap: 0 1rem; border-top: 1px solid var(--rule); padding: 0.85rem 0 0.4rem; }
+.deflist > div {
+  display: grid; grid-template-columns: 7.5rem minmax(0, 1fr); gap: 0 1rem;
+  background: var(--card); border: 1px solid var(--card-border); border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 1rem 1.2rem; margin-bottom: 0.9rem;
+}
 .deflist dt { padding-top: 0.25rem; }
 .deflist dd { margin: 0 0 0.6rem; font-size: 1.06rem; line-height: 1.5; }
 @media (max-width: 640px) { .deflist > div { grid-template-columns: 1fr; } }
